@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>암석 분류 알고리즘 — 조승재(과학이조선생)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+
+:root {
+  --bg:    #ffffff;
+  --paper: #ffffff;
+  --ink:   #1a1a2e;
+  --ink2:  #2d3561;
+  --ink3:  #6b7280;
+  --rule:  #e5e7eb;
+  --ig:        #c0392b; --ig-light:  #fff5f5; --ig-mid:  #fca5a5;
+  --sed:       #059669; --sed-light: #f0fdf4; --sed-mid: #6ee7b7;
+  --meta:      #2563eb; --meta-light:#eff6ff; --meta-mid:#93c5fd;
+  --crit:      #d97706; --crit-light:#fffbeb; --crit-mid:#fcd34d;
+  --ok:   #16a34a;
+  --fail: #dc2626;
+  --bank-w: 220px;
+  --header-h: 56px;
+  --tabs-h: 40px;
+  --diff-h: 44px;
+  --ctrl-h: 52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--bg);color:var(--ink);
+  min-height:100vh;overflow-x:hidden;
+}
+/* no ruled background */
+
+/* ━━ HEADER ━━ */
+header{
+  position:relative;z-index:20;
+  background:#1a1a2e;color:#f1f5f9;
+  height:var(--header-h);padding:0 16px;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:3px solid var(--ink2);flex-shrink:0;
+}
+header h1{font-size:clamp(1.05rem,2.6vw,1.4rem);font-weight:900;letter-spacing:-.5px;white-space:nowrap;}
+header .sub{font-size:clamp(.72rem,1.6vw,.85rem);color:#94a3b8;font-family:'DM Mono',monospace;display:none;}
+@media(min-width:600px){header .sub{display:block;}}
+.info-btn{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);
+  color:#d0c8b8;font-size:.88rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;flex-shrink:0;font-family:'DM Mono',monospace;
+}
+.info-btn:hover{background:rgba(255,255,255,.28);}
+.prog-chip{
+  margin-left:auto;font-family:'DM Mono',monospace;
+  font-size:clamp(.76rem,1.9vw,.88rem);
+  background:rgba(255,255,255,.1);
+  padding:3px 12px;border-radius:20px;color:#d0c8b8;
+  white-space:nowrap;flex-shrink:0;
+}
+
+/* ━━ DIFFICULTY BAR ━━ */
+.diff-bar{
+  position:relative;z-index:20;
+  background:#1e293b;
+  height:var(--diff-h);
+  display:flex;align-items:center;
+  padding:0 16px;gap:12px;
+  border-bottom:2px solid #334155;
+  flex-shrink:0;
+}
+.diff-label{font-size:.8rem;color:#94a3b8;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+.diff-toggle{
+  display:flex;background:#0f172a;border-radius:8px;padding:3px;gap:3px;
+}
+.diff-btn{
+  padding:5px clamp(12px,3vw,20px);
+  border:none;border-radius:6px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:clamp(.82rem,2.1vw,.92rem);font-weight:700;
+  cursor:pointer;transition:all .18s;
+  background:none;color:#64748b;
+  white-space:nowrap;
+}
+.diff-btn.active-easy{
+  background:linear-gradient(135deg,#3a6030,#2a4a22);
+  color:#c8f0b8;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.diff-btn.active-hard{
+  background:linear-gradient(135deg,#7a2010,#5a1008);
+  color:#ffd0c8;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.diff-chip{
+  font-size:.78rem;font-family:'DM Mono',monospace;
+  padding:3px 10px;border-radius:12px;
+  white-space:nowrap;
+}
+.chip-easy{background:rgba(42,122,56,.2);color:#69d88a;border:1px solid rgba(42,122,56,.3);}
+.chip-hard{background:rgba(184,48,32,.2);color:#ff9088;border:1px solid rgba(184,48,32,.3);}
+
+/* ━━ TABS ━━ */
+.tabs{
+  position:relative;z-index:20;
+  display:flex;background:#1e293b;
+  padding:0 12px;gap:2px;
+  height:var(--tabs-h);align-items:flex-end;
+  flex-shrink:0;overflow-x:auto;
+}
+.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{
+  padding:7px clamp(10px,2.5vw,22px);
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:clamp(.84rem,2.2vw,.95rem);font-weight:700;
+  border:none;background:none;color:#94a3b8;cursor:pointer;
+  border-radius:8px 8px 0 0;transition:all .15s;white-space:nowrap;
+}
+.tab-btn:hover{color:#e2e8f0;}
+.tab-btn.on-ig  {background:var(--ig-light); color:var(--ig);}
+.tab-btn.on-sed {background:var(--sed-light);color:var(--sed);}
+.tab-btn.on-meta{background:var(--meta-light);color:var(--meta);}
+
+/* ━━ WORKSPACE ━━ */
+.workspace{
+  position:relative;z-index:1;
+  display:grid;
+  grid-template-columns:var(--bank-w) 1fr;
+  min-height:calc(100vh - var(--header-h) - var(--diff-h) - var(--tabs-h) - var(--ctrl-h) - 48px);
+}
+
+/* ━━ CARD BANK ━━ */
+.bank{
+  background:var(--paper);
+  border-right:2px solid #e5e7eb;
+  padding:12px 10px 20px;
+  overflow-y:auto;
+  max-height:calc(100vh - var(--header-h) - var(--diff-h) - var(--tabs-h) - var(--ctrl-h) - 48px);
+  position:sticky;top:0;
+}
+.bank-title{
+  font-family:'DM Mono',monospace;
+  font-size:.8rem;text-transform:uppercase;letter-spacing:2px;
+  color:#6b7280;margin-bottom:12px;
+  padding-bottom:6px;border-bottom:1.5px solid var(--rule);
+}
+.bank-group{margin-bottom:12px;}
+.bank-group-lbl{display:block;font-size:.74rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.cards-col{display:flex;flex-direction:column;gap:5px;}
+
+/* Hard mode bank hint */
+.hard-hint{
+  font-size:.62rem;color:#6b7280;font-family:'DM Mono',monospace;
+  padding:6px 8px;background:#fff7ed;
+  border:1px dashed #fed7aa;border-radius:6px;
+  margin-bottom:10px;line-height:1.5;
+}
+
+/* ━━ DRAG CARD ━━ */
+.dc{
+  border-radius:7px;padding:6px 9px;
+  font-size:clamp(.82rem,2vw,.9rem);
+  font-weight:500;line-height:1.45;
+  border:1.5px solid transparent;
+  cursor:grab;user-select:none;
+  transition:transform .12s,box-shadow .12s;
+  touch-action:none;
+}
+.dc:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.14);}
+.dc:active{cursor:grabbing;}
+.dc.dragging{opacity:.35;}
+.dc-crit{background:var(--crit-light);border-color:var(--crit-mid);color:var(--crit);}
+.dc-ig  {background:var(--ig-light);  border-color:var(--ig-mid);  color:var(--ig);}
+.dc-sed {background:var(--sed-light); border-color:var(--sed-mid); color:var(--sed);}
+.dc-meta{background:var(--meta-light);border-color:var(--meta-mid);color:var(--meta);}
+/* distractor card (hard mode) */
+.dc-wrong{background:#f9fafb;border-color:#d1d5db;color:#6b7280;}
+
+/* ━━ PANEL ━━ */
+.panel{display:none;padding:clamp(14px,3vw,24px) clamp(12px,3vw,28px);overflow-x:auto;}
+.panel.active{display:block;}
+.panel-hd{font-size:clamp(1.1rem,2.8vw,1.25rem);font-weight:900;margin-bottom:3px;display:flex;align-items:center;gap:8px;}
+.panel-sub{font-size:clamp(.8rem,2vw,.88rem);color:#6b7280;margin-bottom:18px;font-family:'DM Mono',monospace;}
+
+/* ━━ DROP ZONE ━━ */
+.dz{
+  border:2px dashed var(--rule);border-radius:9px;
+  min-width:clamp(100px,18vw,140px);min-height:48px;
+  padding:5px 8px;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:2px;
+  font-size:clamp(.8rem,2vw,.88rem);text-align:center;
+  background:var(--paper);
+  transition:border-color .15s,background .15s,box-shadow .15s;
+  position:relative;cursor:default;
+}
+.dz .ph{font-size:clamp(.74rem,1.8vw,.82rem);color:#9ca3af;}
+.dz.over{border-color:var(--crit);background:#fffbeb;box-shadow:0 0 0 3px rgba(184,48,32,.12);}
+.dz.has-val{border-style:solid;}
+.dz.v-crit{border-color:var(--crit);background:var(--crit-light);}
+.dz.v-ig  {border-color:var(--ig);  background:var(--ig-light);}
+.dz.v-sed {border-color:var(--sed); background:var(--sed-light);}
+.dz.v-meta{border-color:var(--meta);background:var(--meta-light);}
+.dz.v-wrong{border-color:#c8b898;background:#f5f0e8;}
+.dz .dz-val{font-weight:700;font-size:clamp(.8rem,2vw,.88rem);line-height:1.35;}
+.dz .dz-rm{
+  position:absolute;top:3px;right:5px;
+  background:none;border:none;font-size:.78rem;color:#c0b098;
+  cursor:pointer;line-height:1;padding:0 2px;transition:color .12s;
+}
+.dz .dz-rm:hover{color:var(--fail);}
+.dz.ok {border-color:var(--ok)  !important;background:#f0faf3    !important;}
+.dz.err{border-color:var(--fail)!important;background:var(--ig-light)!important;animation:shake .35s;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* Hard mode — dz for criterion slots look slightly different */
+.dz.crit-slot{border-color:#fbbf24;background:#fffbeb;}
+.dz.crit-slot .ph{color:#d97706;}
+
+/* ━━ ROCK NODE ━━ */
+.rn{
+  border-radius:7px;padding:5px 10px;
+  font-size:clamp(.82rem,2vw,.9rem);font-weight:900;
+  text-align:center;min-width:58px;border:2px solid;white-space:nowrap;
+}
+.rn-ig  {background:var(--ig-light); border-color:var(--ig-mid); color:var(--ig);}
+.rn-sed {background:var(--sed-light);border-color:var(--sed-mid);color:var(--sed);}
+.rn-meta{background:var(--meta-light);border-color:var(--meta-mid);color:var(--meta);}
+
+/* ━━ TREE HELPERS ━━ */
+.vcol{display:flex;flex-direction:column;align-items:center;}
+.hrow{display:flex;align-items:flex-start;justify-content:center;}
+.vline{width:2px;background:#e5e7eb;flex-shrink:0;}
+.badge{font-size:clamp(.68rem,1.7vw,.74rem);font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:4px;display:inline-block;}
+.badge-crit{background:var(--crit-light);color:var(--crit);}
+.rock-sub{font-size:clamp(.8rem,2vw,.86rem);font-weight:900;padding:3px 14px;border-radius:0 0 7px 7px;margin-top:-1px;}
+.rsub-ig{background:var(--ig-light);border:1.5px solid var(--ig-mid);border-top:none;color:var(--ig);}
+
+/* ━━ TABLE ━━ */
+.cls-table{width:100%;border-collapse:separate;border-spacing:0 8px;}
+.cls-table th{
+  font-family:'DM Mono',monospace;
+  font-size:clamp(.7rem,1.7vw,.76rem);text-transform:uppercase;letter-spacing:1.5px;
+  color:#6b7280;padding:4px 8px;text-align:left;border-bottom:2px solid #e5e7eb;
+}
+.cls-table td{padding:3px 5px;vertical-align:middle;}
+.cls-table .arrow{text-align:center;font-size:1.1rem;padding:0 4px;}
+
+/* ━━ INFO BOX ━━ */
+.info-box{border-radius:10px;padding:11px 14px;font-size:clamp(.82rem,2vw,.9rem);line-height:1.75;margin-top:16px;}
+.ib-ig  {background:var(--ig-light); border:1px solid var(--ig-mid); color:var(--ig);}
+.ib-sed {background:var(--sed-light);border:1px solid var(--sed-mid);color:var(--sed);}
+.ib-meta{background:var(--meta-light);border:1px solid var(--meta-mid);color:var(--meta);}
+
+/* ━━ CONTROLS ━━ */
+.ctrl{
+  position:relative;z-index:20;
+  display:flex;gap:8px;justify-content:flex-end;
+  padding:10px 16px;background:#ffffff;
+  border-top:2px solid #e5e7eb;
+  min-height:var(--ctrl-h);align-items:center;flex-shrink:0;flex-wrap:wrap;gap:8px;
+}
+.btn{
+  padding:7px clamp(12px,3vw,20px);border-radius:7px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:clamp(.86rem,2.2vw,.94rem);font-weight:700;
+  cursor:pointer;border:2px solid transparent;transition:all .15s;
+}
+.btn-check{background:#1a1a2e;color:#f1f5f9;}
+.btn-check:hover{background:#2d3561;}
+.btn-reset{background:none;border-color:#d1d5db;color:#6b7280;}
+.btn-reset:hover{border-color:#6b7280;color:#1a1a2e;}
+
+/* ━━ FOOTER ━━ */
+footer{
+  position:relative;z-index:10;background:#1a1a2e;color:#64748b;
+  text-align:center;padding:10px 16px;
+  font-size:clamp(.6rem,1.6vw,.7rem);font-family:'DM Mono',monospace;line-height:1.7;
+  border-top:2px solid #334155;
+}
+footer a{color:#93c5fd;text-decoration:none;}
+footer a:hover{color:#bfdbfe;}
+footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
+
+/* ━━ TOAST ━━ */
+.toast{
+  position:fixed;bottom:20px;left:50%;
+  transform:translateX(-50%) translateY(90px);
+  background:#1a1a2e;color:#f1f5f9;
+  border-radius:12px;padding:12px 28px;
+  font-size:1rem;font-weight:700;
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  z-index:999;text-align:center;
+  box-shadow:0 10px 40px rgba(0,0,0,.28);
+  min-width:240px;max-width:90vw;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast .ts{font-family:'DM Mono',monospace;font-size:1.5rem;display:block;}
+.toast .tm{font-size:.84rem;color:#94a3b8;margin-top:4px;}
+.toast.tok  .ts{color:#69d88a;}
+.toast.tfail .ts{color:#e07060;}
+
+/* ━━ MODAL ━━ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.55);z-index:500;
+  align-items:center;justify-content:center;padding:16px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:#ffffff;border-radius:16px;
+  padding:28px 24px 22px;
+  max-width:500px;width:100%;max-height:85vh;overflow-y:auto;
+  position:relative;box-shadow:0 24px 64px rgba(0,0,0,.2);
+  border:2px solid #e5e7eb;
+}
+.modal h2{font-size:1.05rem;font-weight:900;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #e5e7eb;}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.1rem;color:#9ca3af;cursor:pointer;transition:color .12s;}
+.modal-close:hover{color:#1a1a2e;}
+.modal-section{margin-bottom:16px;}
+.modal-section h3{font-size:.9rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.modal-section p,.modal-section li{font-size:.88rem;line-height:1.8;color:#374151;}
+.modal-section ul{padding-left:16px;}
+.tag{font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:4px;display:inline-block;margin-right:4px;}
+.tag-crit{background:var(--crit-light);color:var(--crit);}
+.tag-ig  {background:var(--ig-light);  color:var(--ig);}
+.tag-sed {background:var(--sed-light); color:var(--sed);}
+.tag-meta{background:var(--meta-light);color:var(--meta);}
+
+/* ━━ MOBILE ━━ */
+@media(max-width:640px){
+  :root{--bank-w:155px;}
+  .bank{padding:10px 8px;}
+  .bank-title,.bank-group-lbl{font-size:.55rem;}
+  .dc{font-size:.68rem;padding:5px 7px;}
+  .panel{padding:12px;}
+  .dz{min-width:80px;min-height:42px;padding:4px 6px;}
+  .ig-branch-row{flex-direction:column!important;align-items:center!important;gap:20px!important;}
+}
+@media(max-width:400px){
+  :root{--bank-w:138px;}
+  header h1{font-size:.86rem;}
+}
+
+/* blank span inside crit cards (hard mode) */
+.blank {
+  display: inline-block;
+  min-width: 36px;
+  border-bottom: 2px solid currentColor;
+  color: inherit;
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: .7;
+  vertical-align: bottom;
+  text-align: center;
+}
+
+/* ━━ ACHIEVEMENT MODAL ━━ */
+.ach-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.7);z-index:600;
+  align-items:center;justify-content:center;padding:16px;
+}
+.ach-overlay.open{display:flex;}
+.ach-modal{
+  background:#ffffff;border-radius:20px;
+  padding:0;max-width:440px;width:100%;
+  position:relative;box-shadow:0 32px 80px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+
+/* the capture-target card */
+#achCard{
+  padding:28px 28px 20px;
+  background:linear-gradient(145deg,#1a1a2e 0%,#2d3561 100%);
+  color:#f1f5f9;
+  text-align:center;
+}
+.ach-emoji{font-size:3rem;line-height:1;margin-bottom:10px;}
+.ach-title{font-size:1.15rem;font-weight:900;letter-spacing:-.5px;margin-bottom:4px;}
+.ach-sub{font-size:.72rem;color:#94a3b8;font-family:'DM Mono',monospace;margin-bottom:16px;}
+.ach-score-row{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  margin-bottom:16px;
+}
+.ach-score-box{
+  background:rgba(255,255,255,.1);border-radius:12px;
+  padding:10px 18px;text-align:center;
+}
+.ach-score-num{font-family:'DM Mono',monospace;font-size:1.8rem;font-weight:700;color:#69d88a;display:block;}
+.ach-score-lbl{font-size:.62rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;}
+.ach-badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+.ach-badge{
+  font-size:.68rem;font-weight:700;
+  padding:4px 10px;border-radius:20px;
+  background:rgba(255,255,255,.12);color:#e2e8f0;
+}
+.ach-footer-txt{
+  font-size:.6rem;color:#475569;font-family:'DM Mono',monospace;
+  border-top:1px solid rgba(255,255,255,.1);padding-top:10px;
+}
+
+.ach-actions{
+  padding:14px 20px;
+  display:flex;gap:8px;justify-content:center;
+  background:#f8fafc;border-top:1px solid #e5e7eb;
+}
+.ach-btn{
+  padding:8px 20px;border-radius:8px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:.8rem;font-weight:700;cursor:pointer;
+  border:2px solid transparent;transition:all .15s;
+  display:flex;align-items:center;gap:6px;
+}
+.ach-btn-save{background:#1a1a2e;color:#f1f5f9;}
+.ach-btn-save:hover{background:#2d3561;}
+.ach-btn-close{background:none;border-color:#e5e7eb;color:#6b7280;}
+.ach-btn-close:hover{border-color:#9ca3af;color:#374151;}
+.ach-saving{font-size:.72rem;color:#9ca3af;text-align:center;padding:4px;font-family:'DM Mono',monospace;}
+
+.diff-btn.active-hell{
+  background:linear-gradient(135deg,#4a0000,#1a0000);
+  color:#ff8080;
+  box-shadow:0 2px 8px rgba(0,0,0,.5);
+}
+.chip-hell{background:rgba(139,0,0,.2);color:#ff8080;border:1px solid rgba(139,0,0,.4);}
+/* hell mode input zones */
+.dz.hell-input{border-color:#dc2626;background:#fff5f5;}
+.dz.hell-input .ph{color:#ef4444;}
+.hell-input-field{
+  width:100%;border:none;background:transparent;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:clamp(.8rem,2vw,.88rem);
+  font-weight:700;color:#1a1a2e;
+  text-align:center;outline:none;
+  padding:4px 8px;
+  resize:none;
+}
+.hell-input-field::placeholder{color:#fca5a5;font-weight:400;}
+.hell-input-field:focus{background:rgba(220,38,38,.05);}
+/* Touch ghost */
+.dc-ghost{
+  position:fixed;pointer-events:none;z-index:9999;opacity:.85;
+  transform:rotate(2deg) scale(1.05);border-radius:7px;
+  padding:6px 10px;font-size:.74rem;font-weight:700;white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <h1>🪨 암석 분류 알고리즘</h1>
+  <button class="info-btn" onclick="openModal()" title="사용 방법">ℹ</button>
+  <div class="prog-chip" id="progChip">0 / 0</div>
+</header>
+
+<!-- ══ DIFFICULTY BAR ══ -->
+<div class="diff-bar">
+  <span class="diff-label">난이도</span>
+  <div class="diff-toggle">
+    <button class="diff-btn active-easy" id="btn-easy" onclick="setDiff('easy')">⭐ 쉬움</button>
+    <button class="diff-btn" id="btn-hard" onclick="setDiff('hard')">🔥 어려움</button>
+    <button class="diff-btn" id="btn-hell" onclick="setDiff('hell')">💀 지옥</button>
+  </div>
+  <div class="diff-chip chip-easy" id="diffChip">분류기준 카드 제공됨</div>
+</div>
+
+<!-- ══ TABS ══ -->
+<div class="tabs">
+  <button class="tab-btn on-ig"  id="tb-ig"   onclick="switchTab('ig')">🔥 화성암</button>
+  <button class="tab-btn"        id="tb-sed"  onclick="switchTab('sed')">🌊 퇴적암</button>
+  <button class="tab-btn"        id="tb-meta" onclick="switchTab('meta')">💎 변성암</button>
+</div>
+
+<div class="workspace">
+  <!-- ══ CARD BANK ══ -->
+  <div class="bank" id="cardBank"><!-- rendered by JS --></div>
+
+  <!-- ══ PANELS ══ -->
+  <!-- 🔥 화성암 -->
+  <div class="panel active" id="panel-ig">
+    <div class="panel-hd" style="color:var(--ig)">🔥 화성암 분류 트리</div>
+    <div class="panel-sub">마그마 냉각 → 냉각 속도(알갱이 크기) → 광물 색깔 순으로 분류</div>
+
+    <div class="vcol" style="gap:0;">
+      <span class="badge badge-crit" style="margin-bottom:6px;">분류 기준 ①</span>
+      <div class="dz crit-slot" id="ig_crit1" data-ans="알갱이크기" style="min-width:clamp(160px,28vw,220px);">
+        <span class="ph">카드를 여기에 드래그</span>
+      </div>
+    </div>
+    <div class="vline" style="height:20px;margin:0 auto;"></div>
+
+    <div class="hrow ig-branch-row" style="gap:clamp(24px,6vw,80px);position:relative;align-items:flex-start;">
+      <div style="position:absolute;top:0;left:clamp(30px,12vw,60px);right:clamp(30px,12vw,60px);height:2px;background:var(--rule);"></div>
+
+      <!-- 화산암 -->
+      <div class="vcol" style="gap:0;">
+        <div class="vline" style="height:20px;"></div>
+        <div class="dz" id="ig_vol_cond" data-ans="빠른냉각" style="min-width:clamp(130px,22vw,170px);">
+          <span class="ph">화산암 조건 카드</span>
+        </div>
+        <div class="rock-sub rsub-ig">화산암</div>
+        <div class="vline" style="height:16px;"></div>
+        <span class="badge badge-crit" style="margin-bottom:6px;">분류 기준 ②</span>
+        <div class="dz crit-slot" id="ig_vol_crit2" data-ans="광물색" style="min-width:clamp(140px,24vw,180px);">
+          <span class="ph">카드를 여기에 드래그</span>
+        </div>
+        <div class="vline" style="height:14px;"></div>
+        <div class="hrow" style="gap:clamp(12px,3vw,32px);position:relative;">
+          <div style="position:absolute;top:0;left:16px;right:16px;height:2px;background:var(--rule);"></div>
+          <div class="vcol" style="gap:0;">
+            <div class="vline" style="height:16px;"></div>
+            <div class="dz" id="ig_vol_dark" data-ans="어두운광물" style="min-width:clamp(90px,16vw,118px);"><span class="ph">조건 카드</span></div>
+            <div class="vline" style="height:10px;"></div>
+            <div class="rn rn-ig">현무암</div>
+          </div>
+          <div class="vcol" style="gap:0;">
+            <div class="vline" style="height:16px;"></div>
+            <div class="dz" id="ig_vol_light" data-ans="밝은광물" style="min-width:clamp(90px,16vw,118px);"><span class="ph">조건 카드</span></div>
+            <div class="vline" style="height:10px;"></div>
+            <div class="rn rn-ig">유문암</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 심성암 -->
+      <div class="vcol" style="gap:0;">
+        <div class="vline" style="height:20px;"></div>
+        <div class="dz" id="ig_plu_cond" data-ans="느린냉각" style="min-width:clamp(130px,22vw,170px);">
+          <span class="ph">심성암 조건 카드</span>
+        </div>
+        <div class="rock-sub rsub-ig">심성암</div>
+        <div class="vline" style="height:16px;"></div>
+        <span class="badge badge-crit" style="margin-bottom:6px;">분류 기준 ②</span>
+        <div class="dz crit-slot" id="ig_plu_crit2" data-ans="광물색" style="min-width:clamp(140px,24vw,180px);">
+          <span class="ph">카드를 여기에 드래그</span>
+        </div>
+        <div class="vline" style="height:14px;"></div>
+        <div class="hrow" style="gap:clamp(12px,3vw,32px);position:relative;">
+          <div style="position:absolute;top:0;left:16px;right:16px;height:2px;background:var(--rule);"></div>
+          <div class="vcol" style="gap:0;">
+            <div class="vline" style="height:16px;"></div>
+            <div class="dz" id="ig_plu_dark" data-ans="어두운광물" style="min-width:clamp(90px,16vw,118px);"><span class="ph">조건 카드</span></div>
+            <div class="vline" style="height:10px;"></div>
+            <div class="rn rn-ig">반려암</div>
+          </div>
+          <div class="vcol" style="gap:0;">
+            <div class="vline" style="height:16px;"></div>
+            <div class="dz" id="ig_plu_light" data-ans="밝은광물" style="min-width:clamp(90px,16vw,118px);"><span class="ph">조건 카드</span></div>
+            <div class="vline" style="height:10px;"></div>
+            <div class="rn rn-ig">화강암</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box ib-ig">
+      <b>화성암 핵심 정리</b><br>
+      • 지표 근처 빠른 냉각 → <b>화산암</b> (알갱이 작음): 현무암(어두운색), 유문암(밝은색)<br>
+      • 지하 깊은 곳 느린 냉각 → <b>심성암</b> (알갱이 큼): 반려암(어두운색), 화강암(밝은색)
+    </div>
+  </div>
+
+  <!-- 🌊 퇴적암 -->
+  <div class="panel" id="panel-sed">
+    <div class="panel-hd" style="color:var(--sed)">🌊 퇴적암 분류 트리</div>
+    <div class="panel-sub">퇴적물이 다져지고 굳어진 암석 · 퇴적물의 종류와 크기로 분류</div>
+
+    <div class="vcol" style="gap:0;margin-bottom:16px;">
+      <span class="badge badge-crit" style="margin-bottom:6px;">분류 기준</span>
+      <div class="dz crit-slot" id="sed_crit" data-ans="퇴적물종류" style="min-width:clamp(160px,28vw,220px);">
+        <span class="ph">카드를 여기에 드래그</span>
+      </div>
+    </div>
+    <div class="vline" style="height:14px;margin:0 auto 14px;"></div>
+
+    <table class="cls-table">
+      <thead>
+        <tr>
+          <th>퇴적물 설명 <span style="font-weight:400;opacity:.6">(카드 배치)</span></th>
+          <th></th>
+          <th>암석 이름</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="dz" id="sed_yeogam" data-ans="자갈모래" style="min-width:clamp(140px,26vw,200px);"><span class="ph">퇴적물 카드 드래그</span></div></td>
+          <td class="arrow" style="color:var(--sed);">→</td>
+          <td><div class="rn rn-sed" style="width:fit-content;">역암</div></td>
+        </tr>
+        <tr>
+          <td><div class="dz" id="sed_saam" data-ans="모래" style="min-width:clamp(140px,26vw,200px);"><span class="ph">퇴적물 카드 드래그</span></div></td>
+          <td class="arrow" style="color:var(--sed);">→</td>
+          <td><div class="rn rn-sed" style="width:fit-content;">사암</div></td>
+        </tr>
+        <tr>
+          <td><div class="dz" id="sed_iam" data-ans="진흙" style="min-width:clamp(140px,26vw,200px);"><span class="ph">퇴적물 카드 드래그</span></div></td>
+          <td class="arrow" style="color:var(--sed);">→</td>
+          <td><div class="rn rn-sed" style="width:fit-content;">이암</div></td>
+        </tr>
+        <tr>
+          <td><div class="dz" id="sed_sekhoeam" data-ans="석회질" style="min-width:clamp(140px,26vw,200px);min-height:60px;"><span class="ph">퇴적물 카드 드래그</span></div></td>
+          <td class="arrow" style="color:var(--sed);">→</td>
+          <td><div class="rn rn-sed" style="width:fit-content;">석회암</div></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="info-box ib-sed">
+      <b>퇴적암 공통 특징</b><br>
+      • 퇴적물이 번갈아 쌓여 <b>층리(줄무늬)</b>가 나타남<br>
+      • 생물의 몸체나 흔적이 <b>화석</b>으로 발견되기도 함
+    </div>
+  </div>
+
+  <!-- 💎 변성암 -->
+  <div class="panel" id="panel-meta">
+    <div class="panel-hd" style="color:var(--meta)">💎 변성암 분류 트리</div>
+    <div class="panel-sub">높은 열과 압력으로 변한 암석 · 원래 암석의 종류 → 엽리 관찰 여부</div>
+
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-end;">
+      <div class="vcol" style="gap:6px;align-items:flex-start;">
+        <span class="badge badge-crit">분류 기준 ①</span>
+        <div class="dz crit-slot" id="meta_crit1" data-ans="원래암석" style="min-width:clamp(150px,26vw,190px);">
+          <span class="ph">카드를 여기에 드래그</span>
+        </div>
+      </div>
+      <div style="font-size:1.3rem;color:var(--rule);padding-bottom:6px;">+</div>
+      <div class="vcol" style="gap:6px;align-items:flex-start;">
+        <span class="badge badge-crit">분류 기준 ②</span>
+        <div class="dz crit-slot" id="meta_crit2" data-ans="엽리" style="min-width:clamp(150px,26vw,190px);">
+          <span class="ph">카드를 여기에 드래그</span>
+        </div>
+      </div>
+    </div>
+    <div class="vline" style="height:14px;margin:0 auto 14px;"></div>
+
+    <table class="cls-table">
+      <thead>
+        <tr>
+          <th>원래 암석 <span style="font-weight:400;opacity:.6">(카드 배치)</span></th>
+          <th></th>
+          <th>변성암</th>
+          <th>엽리 분류 <span style="font-weight:400;opacity:.6">(카드 배치)</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="dz" id="meta_saam" data-ans="사암출신" style="min-width:clamp(110px,20vw,140px);"><span class="ph">원래 암석 카드</span></div></td>
+          <td class="arrow" style="color:var(--meta);">→</td>
+          <td><div class="rn rn-meta" style="width:fit-content;">규암</div></td>
+          <td><div class="dz" id="meta_gyuam_leaf" data-ans="엽리없음" style="min-width:clamp(110px,20vw,140px);"><span class="ph">엽리 카드</span></div></td>
+        </tr>
+        <tr>
+          <td><div class="dz" id="meta_sekhoeam" data-ans="석회암출신" style="min-width:clamp(110px,20vw,140px);"><span class="ph">원래 암석 카드</span></div></td>
+          <td class="arrow" style="color:var(--meta);">→</td>
+          <td><div class="rn rn-meta" style="width:fit-content;">대리암</div></td>
+          <td><div class="dz" id="meta_daeream_leaf" data-ans="엽리없음" style="min-width:clamp(110px,20vw,140px);"><span class="ph">엽리 카드</span></div></td>
+        </tr>
+        <tr>
+          <td><div class="dz" id="meta_iam" data-ans="이암출신" style="min-width:clamp(110px,20vw,140px);"><span class="ph">원래 암석 카드</span></div></td>
+          <td class="arrow" style="color:var(--meta);">→</td>
+          <td><div class="rn rn-meta" style="width:fit-content;">편암</div></td>
+          <td><div class="dz" id="meta_pyeonam_leaf" data-ans="엽리있음" style="min-width:clamp(110px,20vw,140px);"><span class="ph">엽리 카드</span></div></td>
+        </tr>
+        <tr>
+          <td><div class="dz" id="meta_hwagangam" data-ans="화강암출신" style="min-width:clamp(110px,20vw,140px);"><span class="ph">원래 암석 카드</span></div></td>
+          <td class="arrow" style="color:var(--meta);">→</td>
+          <td><div class="rn rn-meta" style="width:fit-content;">편마암</div></td>
+          <td><div class="dz" id="meta_pyeonmaim_leaf" data-ans="엽리있음" style="min-width:clamp(110px,20vw,140px);"><span class="ph">엽리 카드</span></div></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="info-box ib-meta">
+      <b>변성암 핵심 정리</b><br>
+      • <b>엽리</b>: 광물 배열이 바뀌며 생기는 줄무늬 — 편암·편마암에서 관찰됨<br>
+      • 규암·대리암은 엽리 없음 · 변성 강도: 이암 → 편암 → 편마암
+    </div>
+  </div>
+</div><!-- /workspace -->
+
+<!-- ══ CONTROLS ══ -->
+<div class="ctrl">
+  <button class="btn btn-reset" onclick="resetAll()">🔄 초기화</button>
+  <button class="btn btn-check" onclick="checkCurrentTab()" id="btnCheckTab">✅ 화성암 확인</button>
+  <button class="btn" id="btnCapture" onclick="openAchievement()"
+    style="background:#7c3aed;color:#fff;border-color:#7c3aed;display:none;">
+    🏆 업적 캡처
+  </button>
+</div>
+
+<!-- ══ ACHIEVEMENT MODAL ══ -->
+<div class="ach-overlay" id="achOverlay" onclick="closeAchIfBg(event)">
+  <div class="ach-modal">
+    <div id="achCard">
+      <div class="ach-emoji" id="achEmoji">🏆</div>
+      <div class="ach-title" id="achTitle">암석 분류 마스터!</div>
+      <div class="ach-sub" id="achSub">암석 분류 알고리즘 완성</div>
+      <div class="ach-score-row">
+        <div class="ach-score-box">
+          <span class="ach-score-num" id="achScoreNum">0/0</span>
+          <span class="ach-score-lbl">정답</span>
+        </div>
+        <div class="ach-score-box">
+          <span class="ach-score-num" id="achPct" style="color:#60a5fa;">0%</span>
+          <span class="ach-score-lbl">정확도</span>
+        </div>
+      </div>
+      <div class="ach-badges" id="achBadges"></div>
+      <div class="ach-footer-txt">
+        🪨 암석 분류 알고리즘 · 제작: 조승재(과학이조선생)<br>
+        <span id="achDate"></span>
+      </div>
+    </div>
+    <div class="ach-actions">
+      <button class="ach-btn ach-btn-save" onclick="saveAchievement()">📥 이미지로 저장</button>
+      <button class="ach-btn ach-btn-close" onclick="closeAchievement()">닫기</button>
+    </div>
+    <div class="ach-saving" id="achSaving" style="display:none;">저장 중...</div>
+  </div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div>
+    <b style="color:#9a8868;">제작</b> 조승재 (과학이조선생) &nbsp;·&nbsp;
+    <b style="color:#9a8868;">문의</b> chuseonjae&#64;outlook&#46;kr
+  </div>
+  <div style="margin-top:3px;color:#5a4a38;font-size:.65rem;">
+    교육 목적으로 학교 등 공공기관에서 자유롭게 사용 가능합니다.
+  </div>
+  <div class="cr">© 2026 조승재. 이 자료는 교육 목적 비상업적 사용에 한해 자유롭게 이용 가능합니다.</div>
+</footer>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast">
+  <span class="ts" id="ts"></span>
+  <div class="tm" id="tm"></div>
+</div>
+
+<!-- ══ INFO MODAL ══ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalIfBg(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>🪨 암석 분류 알고리즘 — 사용 방법</h2>
+    <div class="modal-section">
+      <h3>📌 학습 목표</h3>
+      <p>암석을 화성암·퇴적암·변성암으로 분류하는 기준을 분류 알고리즘을 직접 완성하며 이해합니다.</p>
+    </div>
+    <div class="modal-section">
+      <h3>⭐ 쉬움 vs 🔥 어려움</h3>
+      <ul>
+        <li><b>쉬움</b>: 분류기준 카드가 완전한 텍스트로 제공됩니다. 카드 뱅크에서 골라 빈 칸에 배치하세요.</li>
+        <li><b>어려움</b>: 분류기준 카드의 핵심 단어가 <b>___</b> 빈칸으로 가려집니다. 어떤 분류기준인지 스스로 판단하여 올바른 칸에 배치하세요. 카드 순서도 매번 섞입니다.</li>
+      </ul>
+    </div>
+    <div class="modal-section">
+      <h3>🖱️ 사용 방법</h3>
+      <ul>
+        <li>왼쪽 <b>카드 뱅크</b>에서 카드를 드래그하여 점선 빈 칸에 놓으세요.</li>
+        <li>같은 카드를 여러 곳에 중복 사용할 수 있습니다.</li>
+        <li>놓은 카드를 되돌리려면 <b>✕</b> 버튼을 누르세요.</li>
+        <li><b>정답 확인</b>으로 초록(정답) / 빨강(오답) 확인.</li>
+      </ul>
+    </div>
+    <div class="modal-section">
+      <h3>⚖️ 저작권 / 이용 안내</h3>
+      <p>
+        제작: 조승재 (과학이조선생)<br>
+        문의: chuseonjae&#64;outlook&#46;kr<br>
+        교육 목적으로 학교 등 공공기관에서 자유롭게 사용 가능합니다.<br>
+        상업적 이용 및 무단 배포는 금지됩니다.
+      </p>
+    </div>
+    <button onclick="closeModal()" style="width:100%;margin-top:8px;padding:10px;background:#1a1a2e;color:#f1f5f9;border:none;border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">확인</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   DATA
+══════════════════════════════════════════ */
+
+/* Answer map: dzId → [accepted keys] */
+const ANS = {
+  ig_crit1:['알갱이크기'], ig_vol_cond:['빠른냉각'], ig_plu_cond:['느린냉각'],
+  ig_vol_crit2:['광물색'], ig_plu_crit2:['광물색'],
+  ig_vol_dark:['어두운광물','어두운색광물','어두운'], ig_vol_light:['밝은광물','밝은색광물','밝은'],
+  ig_plu_dark:['어두운광물','어두운색광물','어두운'], ig_plu_light:['밝은광물','밝은색광물','밝은'],
+  sed_crit:['퇴적물종류'],
+  sed_yeogam:['자갈모래'], sed_saam:['모래'], sed_iam:['진흙'], sed_sekhoeam:['석회질'],
+  meta_crit1:['원래암석'], meta_crit2:['엽리'],
+  meta_saam:['사암출신'], meta_sekhoeam:['석회암출신'],
+  meta_iam:['이암출신'], meta_hwagangam:['화강암출신'],
+  meta_gyuam_leaf:['엽리없음'], meta_daeream_leaf:['엽리없음'],
+  meta_pyeonam_leaf:['엽리있음'], meta_pyeonmaim_leaf:['엽리있음'],
+};
+
+/* Card definitions
+   isCrit:true  → 분류기준 카드 (쉬움: 전체 텍스트, 어려움: 핵심어 빈칸 처리)
+   htmlHard     → 어려움 모드에서 보여줄 빈칸 버전 (드롭존에 놓이면 htmlFull이 표시됨)
+   htmlFull     → 정답 확인 후 / 드롭존에 표시될 완전한 텍스트 (= html)
+*/
+const ALL_CARDS = [
+  // ── 분류기준 카드
+  {
+    key:'알갱이크기', cls:'dc-crit', isCrit:true,
+    html:'알갱이 크기로 분류<br><small>(냉각 속도)</small>',
+    htmlHard:'<span class="blank">___</span> 크기로 분류<br><small>(냉각 속도)</small>',
+  },
+  {
+    key:'광물색', cls:'dc-crit', isCrit:true,
+    html:'광물 색깔로 분류<br><small>(어두운색/밝은색)</small>',
+    htmlHard:'광물 <span class="blank">___</span>로 분류<br><small>(어두운색/밝은색)</small>',
+  },
+  {
+    key:'퇴적물종류', cls:'dc-crit', isCrit:true,
+    html:'퇴적물의 종류와 크기',
+    htmlHard:'<span class="blank">___</span>의 종류와 크기',
+  },
+  {
+    key:'원래암석', cls:'dc-crit', isCrit:true,
+    html:'원래 암석의 종류',
+    htmlHard:'원래 <span class="blank">___</span>의 종류',
+  },
+  {
+    key:'엽리', cls:'dc-crit', isCrit:true,
+    html:'엽리(줄무늬) 관찰 여부',
+    htmlHard:'<span class="blank">___</span>(줄무늬) 관찰 여부',
+  },
+  // ── 화성암 조건
+  {key:'빠른냉각',  cls:'dc-ig', html:'지표 근처, 빠른 냉각<br>→ 알갱이 <b>작음</b>'},
+  {key:'느린냉각',  cls:'dc-ig', html:'지하 깊은 곳, 느린 냉각<br>→ 알갱이 <b>큼</b>'},
+  {key:'어두운광물', cls:'dc-ig', html:'어두운 색 광물 많음<br>→ <b>어두운색</b>'},
+  {key:'밝은광물',  cls:'dc-ig', html:'밝은 색 광물 많음<br>→ <b>밝은색</b>'},
+  // ── 퇴적물
+  {key:'자갈모래',  cls:'dc-sed', html:'자갈과 모래가 쌓이고 굳어짐'},
+  {key:'모래',      cls:'dc-sed', html:'모래가 쌓이고 굳어짐'},
+  {key:'진흙',      cls:'dc-sed', html:'진흙이 쌓이고 굳어짐'},
+  {key:'석회질',    cls:'dc-sed', html:'바닷물 속 석회질 물질이나<br>조개껍데기 등 생물 유해가<br>쌓이고 굳어짐'},
+  // ── 변성암
+  {key:'사암출신',    cls:'dc-meta', html:'사암 → 열·압력 →'},
+  {key:'석회암출신',  cls:'dc-meta', html:'석회암 → 열·압력 →'},
+  {key:'이암출신',    cls:'dc-meta', html:'이암 → 열·압력 →'},
+  {key:'화강암출신',  cls:'dc-meta', html:'화강암/편암 → 열·압력 →'},
+  {key:'엽리있음',    cls:'dc-meta', html:'엽리 <b>관찰됨</b><br><small>(광물 배열 줄무늬)</small>'},
+  {key:'엽리없음',    cls:'dc-meta', html:'엽리 <b>없음</b>'},
+];
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+const KEY_CLASS = {
+  알갱이크기:'v-crit', 광물색:'v-crit', 퇴적물종류:'v-crit', 원래암석:'v-crit', 엽리:'v-crit',
+  빠른냉각:'v-ig', 느린냉각:'v-ig', 어두운광물:'v-ig', 밝은광물:'v-ig',
+  자갈모래:'v-sed', 모래:'v-sed', 진흙:'v-sed', 석회질:'v-sed',
+  사암출신:'v-meta', 석회암출신:'v-meta', 이암출신:'v-meta', 화강암출신:'v-meta',
+  엽리있음:'v-meta', 엽리없음:'v-meta',
+};
+
+let difficulty = 'easy'; // 'easy' | 'hard'
+const placed = {};
+let dragging = null;
+
+/* ══════════════════════════════════════════
+   BANK RENDER
+══════════════════════════════════════════ */
+function renderBank() {
+  const bank = document.getElementById('cardBank');
+
+  if (difficulty === 'hell') {
+    bank.innerHTML = `
+      <div class="bank-title">💀 지옥 모드</div>
+      <div class="hard-hint" style="background:#fff0f0;border-color:#fca5a5;color:#dc2626;">
+        💀 지옥 모드<br>카드가 없습니다.<br>모든 분류 기준을<br><b>직접 입력</b>하세요!
+      </div>
+      <div style="font-size:.72rem;color:#6b7280;line-height:1.6;padding:4px 2px;">
+        빈 칸을 클릭하여<br>직접 텍스트를<br>입력하세요.
+      </div>
+    `;
+    // Convert all dz to text input zones
+    document.querySelectorAll('.dz').forEach(zone => {
+      if (!zone.querySelector('textarea') && !zone.classList.contains('has-val')) {
+        zone.classList.add('hell-input');
+        const stored = placed[zone.id];
+        zone.innerHTML = `<textarea class="hell-input-field" rows="2"
+          placeholder="직접 입력..."
+          onchange="setZoneHell('${zone.id}', this.value)"
+          oninput="setZoneHell('${zone.id}', this.value)"
+        >${stored ? stored.text || '' : ''}</textarea>`;
+      }
+    });
+    return;
+  }
+
+  // Restore dz placeholders when leaving hell mode
+  document.querySelectorAll('.dz').forEach(zone => {
+    zone.classList.remove('hell-input');
+  });
+
+  if (difficulty === 'easy') {
+    bank.innerHTML = `
+      <div class="bank-title">📦 카드 뱅크</div>
+      <div class="bank-group">
+        <span class="bank-group-lbl" style="color:var(--crit)">분류 기준</span>
+        <div class="cards-col" id="grp-crit"></div>
+      </div>
+      <div class="bank-group">
+        <span class="bank-group-lbl" style="color:var(--ig)">화성암 조건</span>
+        <div class="cards-col" id="grp-ig"></div>
+      </div>
+      <div class="bank-group">
+        <span class="bank-group-lbl" style="color:var(--sed)">퇴적물</span>
+        <div class="cards-col" id="grp-sed"></div>
+      </div>
+      <div class="bank-group">
+        <span class="bank-group-lbl" style="color:var(--meta)">변성암 조건</span>
+        <div class="cards-col" id="grp-meta"></div>
+      </div>
+    `;
+    ALL_CARDS.forEach(c => {
+      const grp = c.isCrit ? 'grp-crit'
+        : c.cls === 'dc-ig'   ? 'grp-ig'
+        : c.cls === 'dc-sed'  ? 'grp-sed'
+        : 'grp-meta';
+      document.getElementById(grp).appendChild(makeCard(c, false));
+    });
+
+  } else {
+    const hardCards = ALL_CARDS.map(c => ({ ...c }));
+    for (let i = hardCards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [hardCards[i], hardCards[j]] = [hardCards[j], hardCards[i]];
+    }
+    bank.innerHTML = `
+      <div class="bank-title">📦 카드 뱅크</div>
+      <div class="hard-hint">🔥 어려움 모드<br>분류기준 카드의<br><b>빈칸(___)</b>을 채워 넣으세요!</div>
+      <div class="cards-col" id="grp-hard"></div>
+    `;
+    hardCards.forEach(c => {
+      document.getElementById('grp-hard').appendChild(makeCard(c, true));
+    });
+  }
+
+  updateCritSlots();
+  attachDragListeners();
+}
+
+function makeCard(c, useHard) {
+  const el = document.createElement('div');
+  el.className = `dc ${c.cls}`;
+  el.setAttribute('draggable', 'true');
+  el.dataset.key = c.key;
+  // data-html = full text always (shown inside drop zone after placement)
+  el.dataset.html = c.html;
+  // display text: blanked in hard mode for crit cards
+  const displayHtml = (useHard && c.isCrit && c.htmlHard) ? c.htmlHard : c.html;
+  el.innerHTML = displayHtml;
+  return el;
+}
+
+/* Crit slots: in hard mode they accept any card (player must judge);
+   visually they look the same — the answer check enforces correctness */
+function updateCritSlots() {
+  // no visual change needed; crit-slot class just gives a warm tint
+}
+
+/* ══════════════════════════════════════════
+   DIFFICULTY SWITCH
+══════════════════════════════════════════ */
+function setDiff(d) {
+  if (difficulty === d) return;
+  difficulty = d;
+
+  // update buttons
+  document.getElementById('btn-easy').className = 'diff-btn' + (d === 'easy' ? ' active-easy' : '');
+  document.getElementById('btn-hard').className = 'diff-btn' + (d === 'hard' ? ' active-hard' : '');
+  document.getElementById('btn-hell').className = 'diff-btn' + (d === 'hell' ? ' active-hell' : '');
+
+  // update chip
+  const chip = document.getElementById('diffChip');
+  chip.className = d === 'easy' ? 'diff-chip chip-easy'
+                 : d === 'hard' ? 'diff-chip chip-hard'
+                 :                'diff-chip chip-hell';
+  chip.textContent = d === 'easy' ? '분류기준 카드 제공됨'
+                   : d === 'hard' ? '분류기준 핵심어 빈칸 · 카드 순서 섞임'
+                   :                '카드 없음 · 모든 답을 직접 입력';
+
+  // clear placed answers & re-render bank
+  resetAll(false);
+  renderBank();
+}
+
+/* ══════════════════════════════════════════
+   DRAG — DESKTOP
+══════════════════════════════════════════ */
+function attachDragListeners() {
+  document.querySelectorAll('.dc').forEach(c => {
+    c.addEventListener('dragstart', e => {
+      dragging = { key: c.dataset.key, html: c.dataset.html, cls: c.className };
+      c.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+    c.addEventListener('dragend', () => c.classList.remove('dragging'));
+  });
+}
+
+function initDZ() {
+  document.querySelectorAll('.dz').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('over');
+      if (!dragging) return;
+      setZone(zone.id, dragging.key, dragging.html);
+      dragging = null;
+    });
+  });
+}
+
+/* ══════════════════════════════════════════
+   DRAG — TOUCH
+══════════════════════════════════════════ */
+let touchCard = null, ghost = null;
+
+document.addEventListener('touchstart', e => {
+  const card = e.target.closest('.dc');
+  if (!card) return;
+  touchCard = { key: card.dataset.key, html: card.dataset.html };
+  ghost = document.createElement('div');
+  ghost.className = 'dc-ghost ' + card.className.replace('dc ','');
+  ghost.innerHTML = card.innerHTML;
+  document.body.appendChild(ghost);
+  moveGhost(e.touches[0]);
+}, {passive:true});
+
+document.addEventListener('touchmove', e => {
+  if (!ghost) return;
+  moveGhost(e.touches[0]);
+}, {passive:true});
+
+document.addEventListener('touchend', e => {
+  if (!ghost || !touchCard) return;
+  const t = e.changedTouches[0];
+  ghost.remove(); ghost = null;
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  const zone = el && el.closest('.dz');
+  if (zone) setZone(zone.id, touchCard.key, touchCard.html);
+  touchCard = null;
+});
+
+function moveGhost(touch) {
+  if (!ghost) return;
+  ghost.style.left = (touch.clientX - 60) + 'px';
+  ghost.style.top  = (touch.clientY - 20) + 'px';
+}
+
+/* ══════════════════════════════════════════
+   ZONE MANAGEMENT
+══════════════════════════════════════════ */
+function setZone(id, key, html) {
+  placed[id] = {key, html};
+  renderZone(id);
+  updateProg();
+}
+
+/* ── HELL MODE: text input into zone ── */
+function setZoneHell(id, text) {
+  if (text.trim() === '') {
+    delete placed[id];
+  } else {
+    placed[id] = { key: '__hell__', html: text.trim(), text: text.trim() };
+  }
+  updateProg();
+}
+window.setZoneHell = setZoneHell;
+
+function renderZone(id) {
+  const z = document.getElementById(id);
+  if (!z) return;
+  z.classList.remove('has-val','v-crit','v-ig','v-sed','v-meta','v-wrong','ok','err');
+  const p = placed[id];
+  if (!p) { z.innerHTML = '<span class="ph">카드를 여기에 드래그</span>'; return; }
+  const vc = KEY_CLASS[p.key] || 'v-wrong';
+  z.classList.add('has-val', vc);
+  z.innerHTML = `<span class="dz-val">${p.html}</span>
+    <button class="dz-rm" onclick="clearZone('${id}')">✕</button>`;
+}
+
+function clearZone(id) {
+  delete placed[id];
+  const z = document.getElementById(id);
+  z.classList.remove('has-val','v-crit','v-ig','v-sed','v-meta','v-wrong','ok','err');
+  z.innerHTML = '<span class="ph">카드를 여기에 드래그</span>';
+  updateProg();
+}
+
+/* ══════════════════════════════════════════
+   PROGRESS
+══════════════════════════════════════════ */
+function updateProg() {
+  const tab = window._currentTab || 'ig';
+  const keys = TAB_KEYS[tab] || [];
+  let done = 0;
+  if (difficulty === 'hell') {
+    keys.forEach(id => {
+      const z = document.getElementById(id);
+      const ta = z && z.querySelector('textarea');
+      if (ta && ta.value.trim()) done++;
+      else if (placed[id] && placed[id].text) done++;
+    });
+  } else {
+    keys.forEach(id => { if (placed[id]) done++; });
+  }
+  document.getElementById('progChip').textContent = `${done} / ${keys.length}`;
+}
+
+/* ── Tab-scoped answer keys ── */
+const TAB_KEYS = {
+  ig:   ['ig_crit1','ig_vol_cond','ig_plu_cond','ig_vol_crit2','ig_plu_crit2',
+          'ig_vol_dark','ig_vol_light','ig_plu_dark','ig_plu_light'],
+  sed:  ['sed_crit','sed_yeogam','sed_saam','sed_iam','sed_sekhoeam'],
+  meta: ['meta_crit1','meta_crit2','meta_saam','meta_sekhoeam',
+         'meta_iam','meta_hwagangam','meta_gyuam_leaf','meta_daeream_leaf',
+         'meta_pyeonam_leaf','meta_pyeonmaim_leaf'],
+};
+
+/* Hell mode: acceptable keyword sets per zone */
+const HELL_KEYWORDS = {
+  ig_crit1:     ['알갱이','크기','냉각'],
+  ig_vol_crit2: ['광물','색','색깔'],
+  ig_plu_crit2: ['광물','색','색깔'],
+  ig_vol_cond:  ['빠','지표','작','화산'],
+  ig_plu_cond:  ['천천','느','깊','심성','큰','큼'],
+  ig_vol_dark:  ['어두','현무','반려','dark','검','흑','흑색'],
+  ig_vol_light: ['밝','유문','화강','light','흰','백'],
+  ig_plu_dark:  ['어두','현무','반려','dark','검','흑','흑색'],
+  ig_plu_light: ['밝','유문','화강','light','흰','백'],
+  sed_crit:     ['퇴적물','종류','크기'],
+  sed_yeogam:   ['자갈','모래','역암'],
+  sed_saam:     ['모래','사암'],
+  sed_iam:      ['진흙','이암','점토'],
+  sed_sekhoeam: ['석회','조개','생물','유해','석회암'],
+  meta_crit1:   ['원래','암석','종류'],
+  meta_crit2:   ['엽리','줄무늬'],
+  meta_saam:    ['사암','규암'],
+  meta_sekhoeam:['석회암','대리암'],
+  meta_iam:     ['이암','편암'],
+  meta_hwagangam:['화강암','편마암','편암'],
+  meta_gyuam_leaf:   ['없','규암'],
+  meta_daeream_leaf: ['없','대리암'],
+  meta_pyeonam_leaf: ['있','관찰','편암'],
+  meta_pyeonmaim_leaf:['있','관찰','편마암'],
+};
+
+function checkHellAnswer(id, text) {
+  const kws = HELL_KEYWORDS[id];
+  if (!kws) return text.trim().length > 0; // unknown zone → accept anything
+  const t = text.toLowerCase();
+  return kws.some(k => t.includes(k));
+}
+
+/* ── Hell mode: model answers shown when correct ── */
+const HELL_MODEL = {
+  ig_crit1:     '알갱이 크기로 분류 (냉각 속도)',
+  ig_vol_crit2: '광물 색깔로 분류 (어두운색/밝은색)',
+  ig_plu_crit2: '광물 색깔로 분류 (어두운색/밝은색)',
+  ig_vol_cond:  '지표 근처에서 빠르게 냉각 → 알갱이 작음',
+  ig_plu_cond:  '지하 깊은 곳에서 천천히 냉각 → 알갱이 큼',
+  ig_vol_dark:  '어두운 색 광물 많음 → 어두운색 암석',
+  ig_vol_light: '밝은 색 광물 많음 → 밝은색 암석',
+  ig_plu_dark:  '어두운 색 광물 많음 → 어두운색 암석',
+  ig_plu_light: '밝은 색 광물 많음 → 밝은색 암석',
+  sed_crit:     '퇴적물의 종류와 크기',
+  sed_yeogam:   '자갈과 모래가 쌓이고 굳어짐',
+  sed_saam:     '모래가 쌓이고 굳어짐',
+  sed_iam:      '진흙이 쌓이고 굳어짐',
+  sed_sekhoeam: '바닷물 속 석회질 물질이나 조개껍데기 등 생물 유해가 쌓이고 굳어짐',
+  meta_crit1:   '원래 암석의 종류',
+  meta_crit2:   '엽리(줄무늬) 관찰 여부',
+  meta_saam:    '사암 → 열·압력 → 규암',
+  meta_sekhoeam:'석회암 → 열·압력 → 대리암',
+  meta_iam:     '이암 → 열·압력 → 편암',
+  meta_hwagangam:'화강암/편암 → 열·압력 → 편마암',
+  meta_gyuam_leaf:    '엽리 없음',
+  meta_daeream_leaf:  '엽리 없음',
+  meta_pyeonam_leaf:  '엽리 관찰됨 (광물 배열 줄무늬)',
+  meta_pyeonmaim_leaf:'엽리 관찰됨 (광물 배열 줄무늬)',
+};
+
+/* ── Web Audio 효과음 ── */
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const gain = ctx.createGain();
+    gain.connect(ctx.destination);
+    if (type === 'correct') {
+      // 띠링 — 밝은 두 음 연속
+      [880, 1320].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.connect(gain);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.13);
+        gain.gain.setValueAtTime(0.28, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.start(ctx.currentTime + i * 0.13);
+        osc.stop(ctx.currentTime + i * 0.13 + 0.2);
+      });
+    } else {
+      // 삥 — 낮고 짧은 불협화음
+      const osc = ctx.createOscillator();
+      osc.connect(gain);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.28);
+      gain.gain.setValueAtTime(0.22, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch(e) { /* 사운드 미지원 환경 무시 */ }
+}
+
+let tabScores = { ig: null, sed: null, meta: null };
+
+function checkCurrentTab() {
+  const tab = window._currentTab || 'ig';
+  const keys = TAB_KEYS[tab];
+  let ok = 0;
+
+  keys.forEach(id => {
+    const z = document.getElementById(id);
+    if (!z) return;
+    z.classList.remove('ok','err');
+
+    if (difficulty === 'hell') {
+      const ta = z.querySelector('textarea');
+      const text = ta ? ta.value.trim() : (placed[id] ? placed[id].text || '' : '');
+      if (!text) return;
+      if (checkHellAnswer(id, text)) {
+        ok++;
+        z.classList.add('ok');
+        // 모범답안으로 텍스트 교체
+        if (ta && HELL_MODEL[id]) {
+          ta.value = HELL_MODEL[id];
+          placed[id] = { key: '__hell__', html: HELL_MODEL[id], text: HELL_MODEL[id] };
+        }
+      } else {
+        z.classList.add('err');
+      }
+    } else {
+      const p = placed[id];
+      if (!p) return;
+      const accepted = ANS[id] || [];
+      if (accepted.includes(p.key)) { ok++; z.classList.add('ok'); }
+      else z.classList.add('err');
+    }
+  });
+
+  const total = keys.length;
+  const pct = ok / total;
+  tabScores[tab] = { ok, total };
+
+  // 효과음 — 80% 이상이면 띠링, 미만이면 삥
+  playSound(pct >= 0.8 ? 'correct' : 'wrong');
+
+  // 전체 탭 완료 시 업적 캡처 버튼 표시
+  const allDone = ['ig','sed','meta'].every(t => tabScores[t] !== null);
+  if (allDone) {
+    const totalOk    = Object.values(tabScores).reduce((s,v) => s + v.ok, 0);
+    const totalTotal = Object.values(tabScores).reduce((s,v) => s + v.total, 0);
+    window._lastScore = totalOk;
+    window._lastTotal = totalTotal;
+    document.getElementById('btnCapture').style.display = '';
+  }
+
+  const tabNames = { ig:'화성암', sed:'퇴적암', meta:'변성암' };
+  const toast = document.getElementById('toast');
+  document.getElementById('ts').textContent = `${ok} / ${total}`;
+  document.getElementById('tm').textContent =
+    pct === 1   ? `🎉 ${tabNames[tab]} 완벽합니다!` :
+    pct >= 0.7  ? `👍 ${tabNames[tab]} 거의 다 왔어요! 빨간 칸 확인` :
+                  `💪 ${tabNames[tab]} 다시 도전해보세요!`;
+  toast.className = `toast show ${pct >= 0.7 ? 'tok' : 'tfail'}`;
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => toast.className = 'toast', 4500);
+}
+
+// Legacy alias
+function checkAnswers() { checkCurrentTab(); }
+
+/* ══════════════════════════════════════════
+   ACHIEVEMENT / CAPTURE
+══════════════════════════════════════════ */
+function openAchievement() {
+  const ok    = window._lastScore ?? 0;
+  const total = window._lastTotal ?? Object.keys(ANS).length;
+  const pct   = Math.round((ok / total) * 100);
+  const diff  = difficulty === 'hard' ? '🔥 어려움' : '⭐ 쉬움';
+
+  // emoji & title by score
+  let emoji, title, sub;
+  if (pct === 100) {
+    emoji = '🏆'; title = '암석 분류 완전 정복!'; sub = '모든 분류 기준을 완벽히 배치했습니다';
+  } else if (pct >= 80) {
+    emoji = '🥇'; title = '암석 분류 마스터'; sub = '거의 완벽한 분류 알고리즘 완성';
+  } else if (pct >= 60) {
+    emoji = '🥈'; title = '암석 분류 도전자'; sub = '좋은 성과! 조금만 더 연습하면 완벽해요';
+  } else {
+    emoji = '🪨'; title = '암석 분류 도전 중'; sub = '계속 도전하면 반드시 완성됩니다!';
+  }
+
+  document.getElementById('achEmoji').textContent  = emoji;
+  document.getElementById('achTitle').textContent  = title;
+  document.getElementById('achSub').textContent    = sub;
+  document.getElementById('achScoreNum').textContent = `${ok}/${total}`;
+  document.getElementById('achPct').textContent    = `${pct}%`;
+  document.getElementById('achDate').textContent   =
+    new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
+
+  // badges
+  const badges = [diff];
+  if (pct === 100) badges.push('💯 만점');
+  if (ok >= 15)    badges.push('🔬 분류 전문가');
+  if (difficulty === 'hard' && pct >= 80) badges.push('🧠 어려움 클리어');
+  document.getElementById('achBadges').innerHTML =
+    badges.map(b => `<span class="ach-badge">${b}</span>`).join('');
+
+  document.getElementById('achOverlay').classList.add('open');
+  document.getElementById('achSaving').style.display = 'none';
+}
+
+function closeAchievement() {
+  document.getElementById('achOverlay').classList.remove('open');
+}
+
+function closeAchIfBg(e) {
+  if (e.target === document.getElementById('achOverlay')) closeAchievement();
+}
+
+async function saveAchievement() {
+  const saving = document.getElementById('achSaving');
+  saving.style.display = 'block';
+  saving.textContent = '이미지 생성 중...';
+  try {
+    const card = document.getElementById('achCard');
+    const canvas = await html2canvas(card, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: null,
+      logging: false,
+    });
+    saving.textContent = '저장 중...';
+    const link = document.createElement('a');
+    link.download = `암석분류_업적_${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    saving.textContent = '✅ 저장 완료!';
+    setTimeout(() => { saving.style.display = 'none'; }, 2000);
+  } catch(e) {
+    saving.textContent = '❌ 저장 실패. 스크린샷을 이용해주세요.';
+    console.error(e);
+  }
+}
+
+/* ══════════════════════════════════════════
+   RESET
+══════════════════════════════════════════ */
+function resetAll(rerender = true) {
+  Object.keys(placed).forEach(id => delete placed[id]);
+  tabScores = { ig: null, sed: null, meta: null };
+  document.querySelectorAll('.dz').forEach(z => {
+    z.classList.remove('has-val','v-crit','v-ig','v-sed','v-meta','v-wrong','ok','err');
+    if (difficulty === 'hell') {
+      const ta = z.querySelector('textarea');
+      if (ta) ta.value = '';
+    } else {
+      z.innerHTML = '<span class="ph">카드를 여기에 드래그</span>';
+    }
+  });
+  document.getElementById('btnCapture').style.display = 'none';
+  updateProg();
+}
+
+/* ══════════════════════════════════════════
+   TAB
+══════════════════════════════════════════ */
+function switchTab(t) {
+  window._currentTab = t;
+  ['ig','sed','meta'].forEach(x => {
+    document.getElementById('panel-'+x).classList.toggle('active', x === t);
+    const btn = document.getElementById('tb-'+x);
+    btn.className = 'tab-btn';
+    if (x === t) btn.classList.add('on-'+x);
+  });
+  // update check button label
+  const names = { ig:'🔥 화성암 확인', sed:'🌊 퇴적암 확인', meta:'💎 변성암 확인' };
+  const checkBtn = document.getElementById('btnCheckTab');
+  if (checkBtn) checkBtn.textContent = '✅ ' + names[t].slice(2);
+  // update prog chip to show tab-specific progress
+  updateProg();
+}
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+function openModal()  { document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalIfBg(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+/* ══════════════════════════════════════════
+   EXPOSE TO GLOBAL SCOPE (fixes onclick= errors)
+══════════════════════════════════════════ */
+window.setDiff          = setDiff;
+window.switchTab        = switchTab;
+window.resetAll         = resetAll;
+window.checkCurrentTab  = checkCurrentTab;
+window.checkAnswers     = checkAnswers;
+window.clearZone        = clearZone;
+window.openModal        = openModal;
+window.closeModal       = closeModal;
+window.closeModalIfBg   = closeModalIfBg;
+window.openAchievement  = openAchievement;
+window.closeAchievement = closeAchievement;
+window.closeAchIfBg     = closeAchIfBg;
+window.saveAchievement  = saveAchievement;
+window.playSound        = playSound;
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+window._currentTab = 'ig';
+renderBank();
+initDZ();
+updateProg();
+</script>
+</body>
+</html>
