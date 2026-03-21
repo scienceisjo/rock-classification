@@ -362,65 +362,149 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 /* ━━ ACHIEVEMENT MODAL ━━ */
 .ach-overlay{
   display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.7);z-index:600;
-  align-items:center;justify-content:center;padding:16px;
+  background:rgba(0,0,0,.75);z-index:600;
+  align-items:center;justify-content:center;padding:12px;
+  overflow-y:auto;
 }
 .ach-overlay.open{display:flex;}
 .ach-modal{
   background:#ffffff;border-radius:20px;
-  padding:0;max-width:440px;width:100%;
-  position:relative;box-shadow:0 32px 80px rgba(0,0,0,.35);
+  padding:0;max-width:520px;width:100%;
+  position:relative;box-shadow:0 32px 80px rgba(0,0,0,.4);
   overflow:hidden;
+  max-height:95vh;
+  display:flex;flex-direction:column;
 }
 
-/* the capture-target card */
-#achCard{
-  padding:28px 28px 20px;
-  background:linear-gradient(145deg,#1a1a2e 0%,#2d3561 100%);
-  color:#f1f5f9;
-  text-align:center;
+/* ── STEP indicator ── */
+.ach-steps{
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;padding:14px 20px 10px;
+  background:#f8fafc;border-bottom:1px solid #e5e7eb;
+  flex-shrink:0;
 }
-.ach-emoji{font-size:3rem;line-height:1;margin-bottom:10px;}
-.ach-title{font-size:1.15rem;font-weight:900;letter-spacing:-.5px;margin-bottom:4px;}
-.ach-sub{font-size:.72rem;color:#94a3b8;font-family:'DM Mono',monospace;margin-bottom:16px;}
+.ach-step-dot{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:800;
+  border:2px solid #e5e7eb;color:#9ca3af;background:#fff;
+  transition:all .2s;
+}
+.ach-step-dot.active{border-color:#7c3aed;color:#7c3aed;background:#f5f3ff;}
+.ach-step-dot.done{border-color:#16a34a;color:#fff;background:#16a34a;}
+.ach-step-line{flex:1;height:2px;background:#e5e7eb;border-radius:2px;max-width:40px;}
+.ach-step-label{font-size:.7rem;color:#6b7280;font-weight:600;}
+
+/* ── SCROLL BODY ── */
+.ach-body{overflow-y:auto;flex:1;}
+
+/* ── EDITOR STEP ── */
+.ach-editor{padding:20px 22px;}
+.ach-editor-title{font-size:1rem;font-weight:900;color:#1a1a2e;margin-bottom:4px;}
+.ach-editor-sub{font-size:.76rem;color:#6b7280;margin-bottom:18px;}
+
+.ach-field-group{margin-bottom:14px;}
+.ach-field-label{
+  display:block;font-size:.74rem;font-weight:700;color:#374151;
+  margin-bottom:5px;
+}
+.ach-field-label span{font-size:.66rem;color:#9ca3af;font-weight:400;margin-left:4px;}
+.ach-field-input{
+  width:100%;padding:9px 12px;
+  border:1.5px solid #e5e7eb;border-radius:9px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:.84rem;color:#1a1a2e;
+  background:#fafafa;
+  transition:border-color .15s,background .15s;
+  outline:none;
+}
+.ach-field-input:focus{border-color:#7c3aed;background:#fff;}
+.ach-field-input::placeholder{color:#c4c4c4;}
+
+/* emoji picker */
+.emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.emoji-opt{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;cursor:pointer;
+  border:2px solid transparent;background:#f3f4f6;
+  transition:all .12s;
+}
+.emoji-opt:hover{background:#ede9fe;transform:scale(1.1);}
+.emoji-opt.selected{border-color:#7c3aed;background:#ede9fe;}
+
+/* theme picker */
+.theme-picker{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.theme-opt{
+  width:32px;height:32px;border-radius:50%;cursor:pointer;
+  border:3px solid transparent;transition:all .15s;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);
+}
+.theme-opt:hover{transform:scale(1.15);}
+.theme-opt.selected{border-color:#fff;box-shadow:0 0 0 3px #7c3aed;}
+
+/* ── PREVIEW CARD ── */
+#achCard{
+  padding:28px 24px 22px;
+  text-align:center;
+  transition:background .3s;
+}
+.ach-card-name{
+  font-size:1.05rem;font-weight:900;letter-spacing:-.3px;
+  margin-bottom:2px;color:#f1f5f9;
+}
+.ach-card-praise{
+  font-size:.78rem;color:rgba(255,255,255,.75);
+  margin-bottom:14px;font-style:italic;
+  line-height:1.5;
+}
+.ach-emoji{font-size:2.8rem;line-height:1;margin-bottom:8px;}
+.ach-title{font-size:1.1rem;font-weight:900;letter-spacing:-.5px;margin-bottom:4px;color:#f1f5f9;}
+.ach-sub{font-size:.7rem;color:rgba(255,255,255,.6);font-family:'DM Mono',monospace;margin-bottom:14px;}
 .ach-score-row{
-  display:flex;align-items:center;justify-content:center;gap:16px;
-  margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  margin-bottom:14px;
 }
 .ach-score-box{
-  background:rgba(255,255,255,.1);border-radius:12px;
-  padding:10px 18px;text-align:center;
+  background:rgba(255,255,255,.12);border-radius:12px;
+  padding:9px 16px;text-align:center;
 }
-.ach-score-num{font-family:'DM Mono',monospace;font-size:1.8rem;font-weight:700;color:#69d88a;display:block;}
-.ach-score-lbl{font-size:.62rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;}
-.ach-badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+.ach-score-num{font-family:'DM Mono',monospace;font-size:1.7rem;font-weight:700;color:#69d88a;display:block;}
+.ach-score-lbl{font-size:.6rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:1px;}
+.ach-badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;}
 .ach-badge{
-  font-size:.68rem;font-weight:700;
-  padding:4px 10px;border-radius:20px;
-  background:rgba(255,255,255,.12);color:#e2e8f0;
+  font-size:.66rem;font-weight:700;
+  padding:3px 10px;border-radius:20px;
+  background:rgba(255,255,255,.14);color:#e2e8f0;
 }
 .ach-footer-txt{
-  font-size:.6rem;color:#475569;font-family:'DM Mono',monospace;
-  border-top:1px solid rgba(255,255,255,.1);padding-top:10px;
+  font-size:.58rem;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;
+  border-top:1px solid rgba(255,255,255,.12);padding-top:10px;
 }
 
+/* ── ACTIONS BAR ── */
 .ach-actions{
-  padding:14px 20px;
+  padding:12px 18px;
   display:flex;gap:8px;justify-content:center;
   background:#f8fafc;border-top:1px solid #e5e7eb;
+  flex-shrink:0;flex-wrap:wrap;
 }
 .ach-btn{
-  padding:8px 20px;border-radius:8px;
+  padding:8px 18px;border-radius:8px;
   font-family:'Noto Sans KR',sans-serif;
   font-size:.8rem;font-weight:700;cursor:pointer;
   border:2px solid transparent;transition:all .15s;
-  display:flex;align-items:center;gap:6px;
+  display:flex;align-items:center;gap:5px;
 }
+.ach-btn-next{background:#7c3aed;color:#fff;}
+.ach-btn-next:hover{background:#6d28d9;}
 .ach-btn-save{background:#1a1a2e;color:#f1f5f9;}
 .ach-btn-save:hover{background:#2d3561;}
+.ach-btn-back{background:none;border-color:#e5e7eb;color:#6b7280;}
+.ach-btn-back:hover{border-color:#9ca3af;color:#374151;}
 .ach-btn-close{background:none;border-color:#e5e7eb;color:#6b7280;}
 .ach-btn-close:hover{border-color:#9ca3af;color:#374151;}
-.ach-saving{font-size:.72rem;color:#9ca3af;text-align:center;padding:4px;font-family:'DM Mono',monospace;}
+.ach-saving{font-size:.72rem;color:#9ca3af;text-align:center;padding:4px 18px;font-family:'DM Mono',monospace;flex-shrink:0;}
 
 .diff-btn.active-hell{
   background:linear-gradient(135deg,#4a0000,#1a0000);
@@ -698,31 +782,103 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 <!-- ══ ACHIEVEMENT MODAL ══ -->
 <div class="ach-overlay" id="achOverlay" onclick="closeAchIfBg(event)">
   <div class="ach-modal">
-    <div id="achCard">
-      <div class="ach-emoji" id="achEmoji">🏆</div>
-      <div class="ach-title" id="achTitle">암석 분류 마스터!</div>
-      <div class="ach-sub" id="achSub">암석 분류 알고리즘 완성</div>
-      <div class="ach-score-row">
-        <div class="ach-score-box">
-          <span class="ach-score-num" id="achScoreNum">0/0</span>
-          <span class="ach-score-lbl">정답</span>
-        </div>
-        <div class="ach-score-box">
-          <span class="ach-score-num" id="achPct" style="color:#60a5fa;">0%</span>
-          <span class="ach-score-lbl">정확도</span>
-        </div>
-      </div>
-      <div class="ach-badges" id="achBadges"></div>
-      <div class="ach-footer-txt">
-        🪨 암석 분류 알고리즘 · 제작: 조승재(과학이조선생)<br>
-        <span id="achDate"></span>
+
+    <!-- Step indicator -->
+    <div class="ach-steps">
+      <div class="ach-step-dot active" id="stepDot1">1</div>
+      <div class="ach-step-line"></div>
+      <div class="ach-step-dot" id="stepDot2">2</div>
+      <div style="margin-left:10px;">
+        <span class="ach-step-label" id="stepLabel">✏️ 카드 꾸미기</span>
       </div>
     </div>
-    <div class="ach-actions">
-      <button class="ach-btn ach-btn-save" onclick="saveAchievement()">📥 이미지로 저장</button>
-      <button class="ach-btn ach-btn-close" onclick="closeAchievement()">닫기</button>
+
+    <div class="ach-body">
+
+      <!-- ── STEP 1: EDITOR ── -->
+      <div id="achStepEditor" class="ach-editor">
+        <div class="ach-editor-title">🎨 나만의 업적 카드 만들기</div>
+        <div class="ach-editor-sub">이름과 칭찬 문구를 넣어 카드를 완성하세요!</div>
+
+        <!-- 이름 -->
+        <div class="ach-field-group">
+          <label class="ach-field-label" for="inputName">
+            이름 <span>카드에 표시됩니다</span>
+          </label>
+          <input class="ach-field-input" id="inputName" type="text"
+            placeholder="예: 김지후" maxlength="20"
+            oninput="livePreview()">
+        </div>
+
+        <!-- 칭찬 문구 -->
+        <div class="ach-field-group">
+          <label class="ach-field-label" for="inputPraise">
+            칭찬 한마디 <span>자유롭게 써보세요</span>
+          </label>
+          <input class="ach-field-input" id="inputPraise" type="text"
+            placeholder="예: 오늘도 열심히 공부한 나 최고! 🌟"
+            maxlength="40" oninput="livePreview()">
+        </div>
+
+        <!-- 이모지 선택 -->
+        <div class="ach-field-group">
+          <label class="ach-field-label">대표 이모지 선택</label>
+          <div class="emoji-picker" id="emojiPicker">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 테마 색상 -->
+        <div class="ach-field-group">
+          <label class="ach-field-label">카드 테마 색상</label>
+          <div class="theme-picker" id="themePicker">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 미니 미리보기 -->
+        <div style="margin-top:4px;">
+          <label class="ach-field-label">미리보기</label>
+          <div id="miniPreview" style="border-radius:12px;overflow:hidden;border:2px solid #e5e7eb;">
+            <!-- card preview rendered here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: FINAL CARD (capture target) ── -->
+      <div id="achStepPreview" style="display:none;">
+        <div id="achCard">
+          <div class="ach-card-name" id="achCardName"></div>
+          <div class="ach-card-praise" id="achCardPraise"></div>
+          <div class="ach-emoji" id="achEmoji">🏆</div>
+          <div class="ach-title" id="achTitle">암석 분류 마스터!</div>
+          <div class="ach-sub" id="achSub">암석 분류 알고리즘 완성</div>
+          <div class="ach-score-row">
+            <div class="ach-score-box">
+              <span class="ach-score-num" id="achScoreNum">0/0</span>
+              <span class="ach-score-lbl">정답</span>
+            </div>
+            <div class="ach-score-box">
+              <span class="ach-score-num" id="achPct" style="color:#60a5fa;">0%</span>
+              <span class="ach-score-lbl">정확도</span>
+            </div>
+          </div>
+          <div class="ach-badges" id="achBadges"></div>
+          <div class="ach-footer-txt">
+            🪨 암석 분류 알고리즘 · 제작: 조승재(과학이조선생)<br>
+            <span id="achDate"></span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /ach-body -->
+
+    <!-- Actions -->
+    <div class="ach-actions" id="achActions">
+      <!-- rendered by JS based on step -->
     </div>
     <div class="ach-saving" id="achSaving" style="display:none;">저장 중...</div>
+
   </div>
 </div>
 
@@ -1298,42 +1454,183 @@ function checkAnswers() { checkCurrentTab(); }
 /* ══════════════════════════════════════════
    ACHIEVEMENT / CAPTURE
 ══════════════════════════════════════════ */
+
+/* Card themes: [gradient, accent color for pct] */
+const ACH_THEMES = [
+  { id:'navy',   bg:'linear-gradient(145deg,#1a1a2e,#2d3561)', accent:'#69d88a' },
+  { id:'forest', bg:'linear-gradient(145deg,#064e3b,#065f46)', accent:'#6ee7b7' },
+  { id:'royal',  bg:'linear-gradient(145deg,#4c1d95,#6d28d9)', accent:'#c4b5fd' },
+  { id:'sunset', bg:'linear-gradient(145deg,#7c2d12,#c2410c)', accent:'#fdba74' },
+  { id:'ocean',  bg:'linear-gradient(145deg,#0c4a6e,#0369a1)', accent:'#7dd3fc' },
+  { id:'rose',   bg:'linear-gradient(145deg,#881337,#be123c)',  accent:'#fda4af' },
+  { id:'slate',  bg:'linear-gradient(145deg,#1e293b,#334155)', accent:'#94a3b8' },
+  { id:'gold',   bg:'linear-gradient(145deg,#78350f,#b45309)', accent:'#fcd34d' },
+];
+const ACH_EMOJIS = ['🏆','🥇','🥈','🌟','⭐','🔬','🪨','💎','🌋','🧠','🎖️','🌊','✨','💡','🎯'];
+
+let achState = {
+  step: 1,
+  name: '',
+  praise: '',
+  emoji: '🏆',
+  theme: 'navy',
+  autoEmoji: '🏆',
+  autoTitle: '',
+  autoSub: '',
+  badges: [],
+  scoreStr: '',
+  pct: 0,
+};
+
 function openAchievement() {
   const ok    = window._lastScore ?? 0;
   const total = window._lastTotal ?? Object.keys(ANS).length;
   const pct   = Math.round((ok / total) * 100);
-  const diff  = difficulty === 'hard' ? '🔥 어려움' : '⭐ 쉬움';
+  const diff  = difficulty === 'hell' ? '💀 지옥' : difficulty === 'hard' ? '🔥 어려움' : '⭐ 쉬움';
 
-  // emoji & title by score
   let emoji, title, sub;
-  if (pct === 100) {
-    emoji = '🏆'; title = '암석 분류 완전 정복!'; sub = '모든 분류 기준을 완벽히 배치했습니다';
-  } else if (pct >= 80) {
-    emoji = '🥇'; title = '암석 분류 마스터'; sub = '거의 완벽한 분류 알고리즘 완성';
-  } else if (pct >= 60) {
-    emoji = '🥈'; title = '암석 분류 도전자'; sub = '좋은 성과! 조금만 더 연습하면 완벽해요';
-  } else {
-    emoji = '🪨'; title = '암석 분류 도전 중'; sub = '계속 도전하면 반드시 완성됩니다!';
-  }
+  if (pct === 100)     { emoji='🏆'; title='암석 분류 완전 정복!'; sub='모든 분류 기준을 완벽히 배치했습니다'; }
+  else if (pct >= 80)  { emoji='🥇'; title='암석 분류 마스터';    sub='거의 완벽한 분류 알고리즘 완성'; }
+  else if (pct >= 60)  { emoji='🥈'; title='암석 분류 도전자';    sub='좋은 성과! 조금만 더 연습하면 완벽해요'; }
+  else                 { emoji='🪨'; title='암석 분류 도전 중';   sub='계속 도전하면 반드시 완성됩니다!'; }
 
-  document.getElementById('achEmoji').textContent  = emoji;
-  document.getElementById('achTitle').textContent  = title;
-  document.getElementById('achSub').textContent    = sub;
-  document.getElementById('achScoreNum').textContent = `${ok}/${total}`;
-  document.getElementById('achPct').textContent    = `${pct}%`;
-  document.getElementById('achDate').textContent   =
-    new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
-
-  // badges
   const badges = [diff];
-  if (pct === 100) badges.push('💯 만점');
-  if (ok >= 15)    badges.push('🔬 분류 전문가');
+  if (pct === 100)                        badges.push('💯 만점');
+  if (ok >= 15)                           badges.push('🔬 분류 전문가');
   if (difficulty === 'hard' && pct >= 80) badges.push('🧠 어려움 클리어');
-  document.getElementById('achBadges').innerHTML =
-    badges.map(b => `<span class="ach-badge">${b}</span>`).join('');
+  if (difficulty === 'hell')              badges.push('💀 지옥 클리어');
+
+  // Save to state
+  achState = { ...achState,
+    step: 1, autoEmoji: emoji, autoTitle: title, autoSub: sub,
+    badges, scoreStr: `${ok}/${total}`, pct,
+    emoji: emoji, // default to auto emoji
+  };
+
+  // Render emoji & theme pickers
+  renderEmojiPicker();
+  renderThemePicker();
+
+  // Go to step 1
+  goStep(1);
 
   document.getElementById('achOverlay').classList.add('open');
   document.getElementById('achSaving').style.display = 'none';
+
+  // Restore inputs if user had typed before
+  document.getElementById('inputName').value  = achState.name;
+  document.getElementById('inputPraise').value = achState.praise;
+  livePreview();
+}
+
+function renderEmojiPicker() {
+  const picker = document.getElementById('emojiPicker');
+  picker.innerHTML = ACH_EMOJIS.map(e =>
+    `<div class="emoji-opt${e === achState.emoji ? ' selected' : ''}"
+      onclick="selectEmoji('${e}')">${e}</div>`
+  ).join('');
+}
+
+function renderThemePicker() {
+  const swatches = {
+    navy:'#1a1a2e', forest:'#065f46', royal:'#4c1d95', sunset:'#7c2d12',
+    ocean:'#0c4a6e', rose:'#881337', slate:'#1e293b', gold:'#78350f',
+  };
+  const picker = document.getElementById('themePicker');
+  picker.innerHTML = ACH_THEMES.map(t =>
+    `<div class="theme-opt${t.id === achState.theme ? ' selected' : ''}"
+      style="background:${swatches[t.id]};"
+      onclick="selectTheme('${t.id}')" title="${t.id}"></div>`
+  ).join('');
+}
+
+function selectEmoji(e) {
+  achState.emoji = e;
+  renderEmojiPicker();
+  livePreview();
+}
+
+function selectTheme(id) {
+  achState.theme = id;
+  renderThemePicker();
+  livePreview();
+}
+
+/* Build the inner card HTML (used in mini-preview and final card) */
+function buildCardHTML(opts = {}) {
+  const theme  = ACH_THEMES.find(t => t.id === achState.theme) || ACH_THEMES[0];
+  const name   = (achState.name || '').trim();
+  const praise = (achState.praise || '').trim();
+  const bg     = opts.bg || theme.bg;
+  const accent = theme.accent;
+
+  return `<div style="padding:24px 22px 18px;background:${bg};color:#f1f5f9;text-align:center;font-family:'Noto Sans KR',sans-serif;">
+    ${name   ? `<div style="font-size:.9rem;font-weight:900;letter-spacing:-.3px;margin-bottom:2px;color:#f1f5f9;">${escHtml(name)}</div>` : ''}
+    ${praise ? `<div style="font-size:.7rem;color:rgba(255,255,255,.72);margin-bottom:12px;font-style:italic;line-height:1.4;">${escHtml(praise)}</div>` : '<div style="margin-bottom:12px;"></div>'}
+    <div style="font-size:2.6rem;line-height:1;margin-bottom:8px;">${achState.emoji}</div>
+    <div style="font-size:1rem;font-weight:900;margin-bottom:4px;color:#f1f5f9;">${achState.autoTitle}</div>
+    <div style="font-size:.66rem;color:rgba(255,255,255,.55);font-family:'DM Mono',monospace;margin-bottom:12px;">${achState.autoSub}</div>
+    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:12px;">
+      <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:8px 14px;text-align:center;">
+        <span style="font-family:'DM Mono',monospace;font-size:1.5rem;font-weight:700;color:${accent};display:block;">${achState.scoreStr}</span>
+        <span style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;">정답</span>
+      </div>
+      <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:8px 14px;text-align:center;">
+        <span style="font-family:'DM Mono',monospace;font-size:1.5rem;font-weight:700;color:#60a5fa;display:block;">${achState.pct}%</span>
+        <span style="font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;">정확도</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;">
+      ${achState.badges.map(b => `<span style="font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.14);color:#e2e8f0;">${b}</span>`).join('')}
+    </div>
+    <div style="font-size:.56rem;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;border-top:1px solid rgba(255,255,255,.1);padding-top:8px;">
+      🪨 암석 분류 알고리즘 · 제작: 조승재(과학이조선생)<br>
+      ${new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'})}
+    </div>
+  </div>`;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function livePreview() {
+  achState.name   = document.getElementById('inputName').value;
+  achState.praise = document.getElementById('inputPraise').value;
+  const mini = document.getElementById('miniPreview');
+  if (mini) mini.innerHTML = buildCardHTML();
+}
+
+function goStep(n) {
+  achState.step = n;
+
+  // dots
+  document.getElementById('stepDot1').className = 'ach-step-dot' + (n >= 1 ? (n > 1 ? ' done' : ' active') : '');
+  document.getElementById('stepDot2').className = 'ach-step-dot' + (n === 2 ? ' active' : '');
+  document.getElementById('stepLabel').textContent = n === 1 ? '✏️ 카드 꾸미기' : '👁 미리보기 & 저장';
+
+  // panels
+  document.getElementById('achStepEditor').style.display  = n === 1 ? 'block' : 'none';
+  document.getElementById('achStepPreview').style.display = n === 2 ? 'block' : 'none';
+
+  if (n === 2) {
+    // populate final card
+    const card = document.getElementById('achCard');
+    card.innerHTML = buildCardHTML();
+  }
+
+  // actions
+  const actions = document.getElementById('achActions');
+  if (n === 1) {
+    actions.innerHTML = `
+      <button class="ach-btn ach-btn-next" onclick="goStep(2)">다음 — 미리보기 →</button>
+      <button class="ach-btn ach-btn-close" onclick="closeAchievement()">닫기</button>`;
+  } else {
+    actions.innerHTML = `
+      <button class="ach-btn ach-btn-save" onclick="saveAchievement()">📥 이미지 저장</button>
+      <button class="ach-btn ach-btn-back" onclick="goStep(1)">← 다시 꾸미기</button>
+      <button class="ach-btn ach-btn-close" onclick="closeAchievement()">닫기</button>`;
+  }
 }
 
 function closeAchievement() {
@@ -1358,14 +1655,15 @@ async function saveAchievement() {
     });
     saving.textContent = '저장 중...';
     const link = document.createElement('a');
-    link.download = `암석분류_업적_${new Date().toISOString().slice(0,10)}.png`;
+    const nameSlug = (achState.name || '업적').replace(/\s+/g,'_');
+    link.download = `암석분류_${nameSlug}_${new Date().toISOString().slice(0,10)}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
     saving.textContent = '✅ 저장 완료!';
-    setTimeout(() => { saving.style.display = 'none'; }, 2000);
-  } catch(e) {
+    setTimeout(() => { saving.style.display = 'none'; }, 2200);
+  } catch(err) {
     saving.textContent = '❌ 저장 실패. 스크린샷을 이용해주세요.';
-    console.error(e);
+    console.error(err);
   }
 }
 
@@ -1431,6 +1729,10 @@ window.closeAchievement = closeAchievement;
 window.closeAchIfBg     = closeAchIfBg;
 window.saveAchievement  = saveAchievement;
 window.playSound        = playSound;
+window.goStep           = goStep;
+window.selectEmoji      = selectEmoji;
+window.selectTheme      = selectTheme;
+window.livePreview      = livePreview;
 
 /* ══════════════════════════════════════════
    INIT
