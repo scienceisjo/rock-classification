@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>암석 분류 알고리즘 — 조승재(과학이조선생)</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Black+Han+Sans&display=swap');
 
 :root {
   --bg:    #ffffff;
@@ -33,7 +33,454 @@ body{
   background:var(--bg);color:var(--ink);
   min-height:100vh;overflow-x:hidden;
 }
-/* no ruled background */
+
+/* ══════════════════════════════════════════
+   INTRO SCREEN
+══════════════════════════════════════════ */
+#introScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0d0d1a;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Animated rock texture background */
+#introScreen::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(192,57,43,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(37,99,235,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(5,150,105,0.08) 0%, transparent 60%);
+  animation: bgPulse 8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes bgPulse {
+  0%   { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Grid pattern overlay */
+#introScreen::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.intro-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 64px) clamp(20px, 5vw, 48px) 40px;
+  width: 100%;
+}
+
+/* ── HERO ── */
+.intro-hero {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.intro-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(.65rem, 1.6vw, .78rem);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #d97706;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s ease 0.2s forwards;
+}
+
+.intro-logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 0.4s forwards;
+}
+
+.intro-rock-icon {
+  font-size: clamp(2.8rem, 8vw, 4.5rem);
+  filter: drop-shadow(0 0 24px rgba(217,119,6,0.5));
+  animation: rockFloat 4s ease-in-out infinite;
+}
+@keyframes rockFloat {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50%       { transform: translateY(-8px) rotate(3deg); }
+}
+
+.intro-title {
+  font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+  font-size: clamp(2rem, 7vw, 3.8rem);
+  color: #f1f5f9;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  text-shadow: 0 0 60px rgba(217,119,6,0.3);
+}
+
+.intro-title .accent {
+  background: linear-gradient(135deg, #f59e0b, #ef4444, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.intro-subtitle {
+  font-size: clamp(.88rem, 2.2vw, 1.05rem);
+  color: #94a3b8;
+  line-height: 1.7;
+  margin-top: 16px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 0.6s forwards;
+}
+
+.intro-by {
+  margin-top: 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: .72rem;
+  color: #475569;
+  opacity: 0;
+  animation: fadeUp 0.6s ease 0.8s forwards;
+}
+.intro-by strong { color: #d97706; }
+
+/* ── ROCK TYPE CARDS ── */
+.rock-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(10px, 2.5vw, 18px);
+  margin-bottom: 36px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.9s forwards;
+}
+@media(max-width:520px) {
+  .rock-cards { grid-template-columns: 1fr; }
+}
+
+.rock-card {
+  border-radius: 16px;
+  padding: clamp(16px, 3vw, 22px) clamp(14px, 2.5vw, 20px);
+  border: 1.5px solid;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+.rock-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.rock-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.rc-ig   { background: rgba(192,57,43,.12);  border-color: rgba(192,57,43,.35); }
+.rc-sed  { background: rgba(5,150,105,.10);  border-color: rgba(5,150,105,.35); }
+.rc-meta { background: rgba(37,99,235,.10);  border-color: rgba(37,99,235,.35); }
+
+.rock-card-icon { font-size: 2rem; margin-bottom: 8px; display: block; }
+.rock-card-name {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: clamp(1rem, 2.8vw, 1.2rem);
+  margin-bottom: 6px;
+}
+.rc-ig   .rock-card-name { color: #f87171; }
+.rc-sed  .rock-card-name { color: #34d399; }
+.rc-meta .rock-card-name { color: #60a5fa; }
+
+.rock-card-desc {
+  font-size: clamp(.72rem, 1.8vw, .8rem);
+  color: #94a3b8;
+  line-height: 1.6;
+}
+.rock-card-examples {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.rock-ex-tag {
+  font-size: .62rem;
+  font-family: 'DM Mono', monospace;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+.rc-ig   .rock-ex-tag { background: rgba(248,113,113,.15); color: #fca5a5; border: 1px solid rgba(248,113,113,.2); }
+.rc-sed  .rock-ex-tag { background: rgba(52,211,153,.15);  color: #6ee7b7; border: 1px solid rgba(52,211,153,.2); }
+.rc-meta .rock-ex-tag { background: rgba(96,165,250,.15);  color: #93c5fd; border: 1px solid rgba(96,165,250,.2); }
+
+/* ── HOW TO SECTION ── */
+.intro-section {
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 1.1s forwards;
+}
+
+.intro-section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #64748b;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.intro-section-title::before,
+.intro-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,.08);
+}
+
+.how-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.how-step {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  padding: 16px 14px;
+  transition: background 0.2s;
+}
+.how-step:hover { background: rgba(255,255,255,.07); }
+
+.how-step-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: rgba(217,119,6,.5);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.how-step-title {
+  font-size: .86rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin-bottom: 4px;
+}
+.how-step-desc {
+  font-size: .74rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* ── DIFFICULTY SECTION ── */
+.diff-section {
+  opacity: 0;
+  animation: fadeUp 0.8s ease 1.2s forwards;
+  margin-bottom: 32px;
+}
+
+.diff-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media(max-width:480px) {
+  .diff-cards { grid-template-columns: 1fr; }
+}
+
+.diff-intro-card {
+  border-radius: 12px;
+  padding: 14px 12px;
+  border: 1.5px solid;
+  text-align: center;
+  transition: transform 0.15s;
+}
+.diff-intro-card:hover { transform: scale(1.02); }
+
+.dic-easy  { background: rgba(42,122,56,.12); border-color: rgba(42,122,56,.3); }
+.dic-hard  { background: rgba(184,48,32,.12); border-color: rgba(184,48,32,.3); }
+.dic-hell  { background: rgba(100,0,0,.2);    border-color: rgba(139,0,0,.4); }
+
+.dic-badge {
+  font-size: 1.4rem;
+  display: block;
+  margin-bottom: 5px;
+}
+.dic-name {
+  font-weight: 900;
+  font-size: .82rem;
+  margin-bottom: 4px;
+}
+.dic-easy  .dic-name { color: #4ade80; }
+.dic-hard  .dic-name { color: #f87171; }
+.dic-hell  .dic-name { color: #ff6060; }
+.dic-desc {
+  font-size: .66rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ── AUTHOR BOX ── */
+.author-box {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 1.3s forwards;
+}
+.author-avatar {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  background: rgba(217,119,6,.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(217,119,6,.3);
+}
+.author-info { flex: 1; }
+.author-name {
+  font-weight: 900;
+  font-size: .9rem;
+  color: #f1f5f9;
+  margin-bottom: 3px;
+}
+.author-name span {
+  font-size: .72rem;
+  color: #d97706;
+  font-weight: 500;
+  font-family: 'DM Mono', monospace;
+}
+.author-desc {
+  font-size: .76rem;
+  color: #64748b;
+  line-height: 1.65;
+}
+.author-contact {
+  margin-top: 6px;
+  font-size: .68rem;
+  font-family: 'DM Mono', monospace;
+  color: #475569;
+}
+
+/* ── START BUTTON ── */
+.intro-cta {
+  text-align: center;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 1.4s forwards;
+  padding-bottom: 24px;
+}
+
+.start-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #d97706, #c0392b);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: clamp(14px, 3vw, 18px) clamp(28px, 6vw, 48px);
+  font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+  font-size: clamp(1rem, 2.8vw, 1.2rem);
+  cursor: pointer;
+  letter-spacing: 1px;
+  box-shadow:
+    0 8px 32px rgba(217,119,6,.4),
+    0 2px 8px rgba(0,0,0,.3);
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.start-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+  transition: left 0.4s;
+}
+.start-btn:hover::before { left: 100%; }
+.start-btn:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 16px 48px rgba(217,119,6,.5),
+    0 4px 12px rgba(0,0,0,.4);
+}
+.start-btn:active { transform: translateY(-1px); }
+.start-btn-icon { font-size: 1.4rem; animation: rockFloat 3s ease-in-out infinite; }
+
+.intro-note {
+  margin-top: 12px;
+  font-size: .7rem;
+  color: #374151;
+  font-family: 'DM Mono', monospace;
+}
+
+/* Floating rocks decoration */
+.floating-rocks {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.fr {
+  position: absolute;
+  font-size: 1.4rem;
+  opacity: 0.06;
+  animation: driftRock linear infinite;
+}
+@keyframes driftRock {
+  0%   { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.06; }
+  90%  { opacity: 0.06; }
+  100% { transform: translateY(-120px) rotate(360deg); opacity: 0; }
+}
+
+/* Transition out */
+#introScreen.closing {
+  animation: introClose 0.7s cubic-bezier(.7,0,.3,1) forwards;
+}
+@keyframes introClose {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── APP (hidden initially) ── */
+#appWrapper {
+  display: none;
+  flex-direction: column;
+  min-height: 100vh;
+}
+#appWrapper.visible { display: flex; }
 
 /* ━━ HEADER ━━ */
 header{
@@ -151,7 +598,6 @@ header .sub{font-size:clamp(.72rem,1.6vw,.85rem);color:#94a3b8;font-family:'DM M
 .bank-group-lbl{display:block;font-size:.74rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
 .cards-col{display:flex;flex-direction:column;gap:5px;}
 
-/* Hard mode bank hint */
 .hard-hint{
   font-size:.62rem;color:#6b7280;font-family:'DM Mono',monospace;
   padding:6px 8px;background:#fff7ed;
@@ -176,7 +622,6 @@ header .sub{font-size:clamp(.72rem,1.6vw,.85rem);color:#94a3b8;font-family:'DM M
 .dc-ig  {background:var(--ig-light);  border-color:var(--ig-mid);  color:var(--ig);}
 .dc-sed {background:var(--sed-light); border-color:var(--sed-mid); color:var(--sed);}
 .dc-meta{background:var(--meta-light);border-color:var(--meta-mid);color:var(--meta);}
-/* distractor card (hard mode) */
 .dc-wrong{background:#f9fafb;border-color:#d1d5db;color:#6b7280;}
 
 /* ━━ PANEL ━━ */
@@ -216,7 +661,6 @@ header .sub{font-size:clamp(.72rem,1.6vw,.85rem);color:#94a3b8;font-family:'DM M
 .dz.err{border-color:var(--fail)!important;background:var(--ig-light)!important;animation:shake .35s;}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 
-/* Hard mode — dz for criterion slots look slightly different */
 .dz.crit-slot{border-color:#fbbf24;background:#fffbeb;}
 .dz.crit-slot .ph{color:#d97706;}
 
@@ -303,6 +747,42 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 .toast.tok  .ts{color:#69d88a;}
 .toast.tfail .ts{color:#e07060;}
 
+/* ━━ CELEBRATION OVERLAY ━━ */
+#celebrationOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.perfect-banner {
+  background: linear-gradient(135deg, #d97706, #c0392b);
+  color: #fff;
+  padding: 16px 32px;
+  border-radius: 20px;
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  animation: bannerPop 0.5s cubic-bezier(.34,1.56,.64,1) forwards, bannerFade 0.5s ease 2s forwards;
+  text-align: center;
+  letter-spacing: 1px;
+}
+@keyframes bannerPop  { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes bannerFade { from { opacity: 1; } to { opacity: 0; } }
+
 /* ━━ MODAL ━━ */
 .modal-overlay{
   display:none;position:fixed;inset:0;
@@ -345,7 +825,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
   header h1{font-size:.86rem;}
 }
 
-/* blank span inside crit cards (hard mode) */
 .blank {
   display: inline-block;
   min-width: 36px;
@@ -375,8 +854,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
   max-height:95vh;
   display:flex;flex-direction:column;
 }
-
-/* ── STEP indicator ── */
 .ach-steps{
   display:flex;align-items:center;justify-content:center;
   gap:8px;padding:14px 20px 10px;
@@ -394,20 +871,12 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 .ach-step-dot.done{border-color:#16a34a;color:#fff;background:#16a34a;}
 .ach-step-line{flex:1;height:2px;background:#e5e7eb;border-radius:2px;max-width:40px;}
 .ach-step-label{font-size:.7rem;color:#6b7280;font-weight:600;}
-
-/* ── SCROLL BODY ── */
 .ach-body{overflow-y:auto;flex:1;}
-
-/* ── EDITOR STEP ── */
 .ach-editor{padding:20px 22px;}
 .ach-editor-title{font-size:1rem;font-weight:900;color:#1a1a2e;margin-bottom:4px;}
 .ach-editor-sub{font-size:.76rem;color:#6b7280;margin-bottom:18px;}
-
 .ach-field-group{margin-bottom:14px;}
-.ach-field-label{
-  display:block;font-size:.74rem;font-weight:700;color:#374151;
-  margin-bottom:5px;
-}
+.ach-field-label{display:block;font-size:.74rem;font-weight:700;color:#374151;margin-bottom:5px;}
 .ach-field-label span{font-size:.66rem;color:#9ca3af;font-weight:400;margin-left:4px;}
 .ach-field-input{
   width:100%;padding:9px 12px;
@@ -420,8 +889,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 }
 .ach-field-input:focus{border-color:#7c3aed;background:#fff;}
 .ach-field-input::placeholder{color:#c4c4c4;}
-
-/* emoji picker */
 .emoji-picker{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .emoji-opt{
   width:36px;height:36px;border-radius:8px;
@@ -432,8 +899,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 }
 .emoji-opt:hover{background:#ede9fe;transform:scale(1.1);}
 .emoji-opt.selected{border-color:#7c3aed;background:#ede9fe;}
-
-/* theme picker */
 .theme-picker{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
 .theme-opt{
   width:32px;height:32px;border-radius:50%;cursor:pointer;
@@ -442,47 +907,23 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 }
 .theme-opt:hover{transform:scale(1.15);}
 .theme-opt.selected{border-color:#fff;box-shadow:0 0 0 3px #7c3aed;}
-
-/* ── PREVIEW CARD ── */
 #achCard{
   padding:28px 24px 22px;
   text-align:center;
   transition:background .3s;
 }
-.ach-card-name{
-  font-size:1.05rem;font-weight:900;letter-spacing:-.3px;
-  margin-bottom:2px;color:#f1f5f9;
-}
-.ach-card-praise{
-  font-size:.78rem;color:rgba(255,255,255,.75);
-  margin-bottom:14px;font-style:italic;
-  line-height:1.5;
-}
+.ach-card-name{font-size:1.05rem;font-weight:900;letter-spacing:-.3px;margin-bottom:2px;color:#f1f5f9;}
+.ach-card-praise{font-size:.78rem;color:rgba(255,255,255,.75);margin-bottom:14px;font-style:italic;line-height:1.5;}
 .ach-emoji{font-size:2.8rem;line-height:1;margin-bottom:8px;}
 .ach-title{font-size:1.1rem;font-weight:900;letter-spacing:-.5px;margin-bottom:4px;color:#f1f5f9;}
 .ach-sub{font-size:.7rem;color:rgba(255,255,255,.6);font-family:'DM Mono',monospace;margin-bottom:14px;}
-.ach-score-row{
-  display:flex;align-items:center;justify-content:center;gap:14px;
-  margin-bottom:14px;
-}
-.ach-score-box{
-  background:rgba(255,255,255,.12);border-radius:12px;
-  padding:9px 16px;text-align:center;
-}
+.ach-score-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px;}
+.ach-score-box{background:rgba(255,255,255,.12);border-radius:12px;padding:9px 16px;text-align:center;}
 .ach-score-num{font-family:'DM Mono',monospace;font-size:1.7rem;font-weight:700;color:#69d88a;display:block;}
 .ach-score-lbl{font-size:.6rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:1px;}
 .ach-badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;}
-.ach-badge{
-  font-size:.66rem;font-weight:700;
-  padding:3px 10px;border-radius:20px;
-  background:rgba(255,255,255,.14);color:#e2e8f0;
-}
-.ach-footer-txt{
-  font-size:.58rem;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;
-  border-top:1px solid rgba(255,255,255,.12);padding-top:10px;
-}
-
-/* ── ACTIONS BAR ── */
+.ach-badge{font-size:.66rem;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.14);color:#e2e8f0;}
+.ach-footer-txt{font-size:.58rem;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace;border-top:1px solid rgba(255,255,255,.12);padding-top:10px;}
 .ach-actions{
   padding:12px 18px;
   display:flex;gap:8px;justify-content:center;
@@ -512,7 +953,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
   box-shadow:0 2px 8px rgba(0,0,0,.5);
 }
 .chip-hell{background:rgba(139,0,0,.2);color:#ff8080;border:1px solid rgba(139,0,0,.4);}
-/* hell mode input zones */
 .dz.hell-input{border-color:#dc2626;background:#fff5f5;}
 .dz.hell-input .ph{color:#ef4444;}
 .hell-input-field{
@@ -526,7 +966,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 }
 .hell-input-field::placeholder{color:#fca5a5;font-weight:400;}
 .hell-input-field:focus{background:rgba(220,38,38,.05);}
-/* Touch ghost */
 .dc-ghost{
   position:fixed;pointer-events:none;z-index:9999;opacity:.85;
   transform:rotate(2deg) scale(1.05);border-radius:7px;
@@ -537,6 +976,140 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
+
+<!-- ══ INTRO SCREEN ══ -->
+<div id="introScreen">
+  <!-- Floating decorative rocks -->
+  <div class="floating-rocks" id="floatingRocks"></div>
+
+  <div class="intro-inner">
+    <!-- HERO -->
+    <div class="intro-hero">
+      <div class="intro-eyebrow">🏫 중학교 1학년 과학 · 지구과학 단원</div>
+      <div class="intro-logo-row">
+        <span class="intro-rock-icon">🪨</span>
+        <h1 class="intro-title">암석 분류<br><span class="accent">알고리즘</span></h1>
+      </div>
+      <p class="intro-subtitle">
+        화성암, 퇴적암, 변성암을 분류하는 기준을 직접 배치하며<br>
+        암석 분류의 원리를 체계적으로 익히는 드래그&드롭 학습 도구
+      </p>
+      <div class="intro-by">제작: <strong>조승재 (과학이조선생)</strong> · 2026</div>
+    </div>
+
+    <!-- ROCK TYPE CARDS -->
+    <div class="rock-cards">
+      <div class="rock-card rc-ig">
+        <span class="rock-card-icon">🌋</span>
+        <div class="rock-card-name">화성암</div>
+        <div class="rock-card-desc">마그마가 식어서 굳어진 암석. 냉각 속도와 광물 색으로 분류</div>
+        <div class="rock-card-examples">
+          <span class="rock-ex-tag">현무암</span>
+          <span class="rock-ex-tag">유문암</span>
+          <span class="rock-ex-tag">반려암</span>
+          <span class="rock-ex-tag">화강암</span>
+        </div>
+      </div>
+      <div class="rock-card rc-sed">
+        <span class="rock-card-icon">🌊</span>
+        <div class="rock-card-name">퇴적암</div>
+        <div class="rock-card-desc">퇴적물이 쌓이고 굳어진 암석. 퇴적물의 종류와 크기로 분류</div>
+        <div class="rock-card-examples">
+          <span class="rock-ex-tag">역암</span>
+          <span class="rock-ex-tag">사암</span>
+          <span class="rock-ex-tag">이암</span>
+          <span class="rock-ex-tag">석회암</span>
+        </div>
+      </div>
+      <div class="rock-card rc-meta">
+        <span class="rock-card-icon">💎</span>
+        <div class="rock-card-name">변성암</div>
+        <div class="rock-card-desc">열과 압력으로 변한 암석. 원래 암석과 엽리 유무로 분류</div>
+        <div class="rock-card-examples">
+          <span class="rock-ex-tag">규암</span>
+          <span class="rock-ex-tag">대리암</span>
+          <span class="rock-ex-tag">편암</span>
+          <span class="rock-ex-tag">편마암</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW TO USE -->
+    <div class="intro-section">
+      <div class="intro-section-title">사용 방법</div>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="how-step-num">01</div>
+          <div class="how-step-title">탭 선택</div>
+          <div class="how-step-desc">화성암·퇴적암·변성암 탭 중 하나를 선택하세요</div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">02</div>
+          <div class="how-step-title">카드 드래그</div>
+          <div class="how-step-desc">왼쪽 카드 뱅크에서 카드를 점선 빈칸으로 드래그하세요</div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">03</div>
+          <div class="how-step-title">정답 확인</div>
+          <div class="how-step-desc">배치 완료 후 "확인" 버튼으로 정오답을 즉시 확인!</div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">04</div>
+          <div class="how-step-title">업적 저장</div>
+          <div class="how-step-desc">3개 탭 모두 완료하면 나만의 업적 카드를 만들 수 있어요</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIFFICULTY -->
+    <div class="diff-section">
+      <div class="intro-section-title">난이도 선택</div>
+      <div class="diff-cards">
+        <div class="diff-intro-card dic-easy">
+          <span class="dic-badge">⭐</span>
+          <div class="dic-name">쉬움</div>
+          <div class="dic-desc">분류기준 카드가 완전한 텍스트로 제공됩니다</div>
+        </div>
+        <div class="diff-intro-card dic-hard">
+          <span class="dic-badge">🔥</span>
+          <div class="dic-name">어려움</div>
+          <div class="dic-desc">분류기준 카드의 핵심 단어가 빈칸으로 가려지고 카드 순서가 섞입니다</div>
+        </div>
+        <div class="diff-intro-card dic-hell">
+          <span class="dic-badge">💀</span>
+          <div class="dic-name">지옥</div>
+          <div class="dic-desc">카드 없음! 모든 분류 기준을 직접 입력해야 합니다</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTHOR -->
+    <div class="author-box">
+      <div class="author-avatar">👨‍🏫</div>
+      <div class="author-info">
+        <div class="author-name">조승재 <span>/ 과학이조선생</span></div>
+        <div class="author-desc">
+          중학교 과학 교사가 직접 제작한 학습 도구입니다.<br>
+          암석의 분류 체계를 시각적·능동적으로 익힐 수 있도록 설계되었습니다.<br>
+          교육 목적으로 학교 등 공공기관에서 자유롭게 사용 가능합니다.
+        </div>
+        <div class="author-contact">✉ chuseonjae@outlook.kr</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="intro-cta">
+      <button class="start-btn" onclick="startApp()">
+        <span class="start-btn-icon">🪨</span>
+        학습 시작하기
+      </button>
+      <div class="intro-note">드래그&드롭 · 모바일 터치 지원</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP WRAPPER ══ -->
+<div id="appWrapper">
 
 <!-- ══ HEADER ══ -->
 <header>
@@ -565,10 +1138,9 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
 
 <div class="workspace">
   <!-- ══ CARD BANK ══ -->
-  <div class="bank" id="cardBank"><!-- rendered by JS --></div>
+  <div class="bank" id="cardBank"></div>
 
   <!-- ══ PANELS ══ -->
-  <!-- 🔥 화성암 -->
   <div class="panel active" id="panel-ig">
     <div class="panel-hd" style="color:var(--ig)">🔥 화성암 분류 트리</div>
     <div class="panel-sub">마그마 냉각 → 냉각 속도(알갱이 크기) → 광물 색깔 순으로 분류</div>
@@ -584,7 +1156,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
     <div class="hrow ig-branch-row" style="gap:clamp(24px,6vw,80px);position:relative;align-items:flex-start;">
       <div style="position:absolute;top:0;left:clamp(30px,12vw,60px);right:clamp(30px,12vw,60px);height:2px;background:var(--rule);"></div>
 
-      <!-- 화산암 -->
       <div class="vcol" style="gap:0;">
         <div class="vline" style="height:20px;"></div>
         <div class="dz" id="ig_vol_cond" data-ans="빠른냉각" style="min-width:clamp(130px,22vw,170px);">
@@ -614,7 +1185,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
         </div>
       </div>
 
-      <!-- 심성암 -->
       <div class="vcol" style="gap:0;">
         <div class="vline" style="height:20px;"></div>
         <div class="dz" id="ig_plu_cond" data-ans="느린냉각" style="min-width:clamp(130px,22vw,170px);">
@@ -652,7 +1222,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
     </div>
   </div>
 
-  <!-- 🌊 퇴적암 -->
   <div class="panel" id="panel-sed">
     <div class="panel-hd" style="color:var(--sed)">🌊 퇴적암 분류 트리</div>
     <div class="panel-sub">퇴적물이 다져지고 굳어진 암석 · 퇴적물의 종류와 크기로 분류</div>
@@ -703,7 +1272,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
     </div>
   </div>
 
-  <!-- 💎 변성암 -->
   <div class="panel" id="panel-meta">
     <div class="panel-hd" style="color:var(--meta)">💎 변성암 분류 트리</div>
     <div class="panel-sub">높은 열과 압력으로 변한 암석 · 원래 암석의 종류 → 엽리 관찰 여부</div>
@@ -767,7 +1335,7 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
       • 규암·대리암은 엽리 없음 · 변성 강도: 이암 → 편암 → 편마암
     </div>
   </div>
-</div><!-- /workspace -->
+</div>
 
 <!-- ══ CONTROLS ══ -->
 <div class="ctrl">
@@ -777,109 +1345,6 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
     style="background:#7c3aed;color:#fff;border-color:#7c3aed;display:none;">
     🏆 업적 캡처
   </button>
-</div>
-
-<!-- ══ ACHIEVEMENT MODAL ══ -->
-<div class="ach-overlay" id="achOverlay" onclick="closeAchIfBg(event)">
-  <div class="ach-modal">
-
-    <!-- Step indicator -->
-    <div class="ach-steps">
-      <div class="ach-step-dot active" id="stepDot1">1</div>
-      <div class="ach-step-line"></div>
-      <div class="ach-step-dot" id="stepDot2">2</div>
-      <div style="margin-left:10px;">
-        <span class="ach-step-label" id="stepLabel">✏️ 카드 꾸미기</span>
-      </div>
-    </div>
-
-    <div class="ach-body">
-
-      <!-- ── STEP 1: EDITOR ── -->
-      <div id="achStepEditor" class="ach-editor">
-        <div class="ach-editor-title">🎨 나만의 업적 카드 만들기</div>
-        <div class="ach-editor-sub">이름과 칭찬 문구를 넣어 카드를 완성하세요!</div>
-
-        <!-- 이름 -->
-        <div class="ach-field-group">
-          <label class="ach-field-label" for="inputName">
-            이름 <span>카드에 표시됩니다</span>
-          </label>
-          <input class="ach-field-input" id="inputName" type="text"
-            placeholder="예: 김지후" maxlength="20"
-            oninput="livePreview()">
-        </div>
-
-        <!-- 칭찬 문구 -->
-        <div class="ach-field-group">
-          <label class="ach-field-label" for="inputPraise">
-            칭찬 한마디 <span>자유롭게 써보세요</span>
-          </label>
-          <input class="ach-field-input" id="inputPraise" type="text"
-            placeholder="예: 오늘도 열심히 공부한 나 최고! 🌟"
-            maxlength="40" oninput="livePreview()">
-        </div>
-
-        <!-- 이모지 선택 -->
-        <div class="ach-field-group">
-          <label class="ach-field-label">대표 이모지 선택</label>
-          <div class="emoji-picker" id="emojiPicker">
-            <!-- rendered by JS -->
-          </div>
-        </div>
-
-        <!-- 테마 색상 -->
-        <div class="ach-field-group">
-          <label class="ach-field-label">카드 테마 색상</label>
-          <div class="theme-picker" id="themePicker">
-            <!-- rendered by JS -->
-          </div>
-        </div>
-
-        <!-- 미니 미리보기 -->
-        <div style="margin-top:4px;">
-          <label class="ach-field-label">미리보기</label>
-          <div id="miniPreview" style="border-radius:12px;overflow:hidden;border:2px solid #e5e7eb;">
-            <!-- card preview rendered here -->
-          </div>
-        </div>
-      </div>
-
-      <!-- ── STEP 2: FINAL CARD (capture target) ── -->
-      <div id="achStepPreview" style="display:none;">
-        <div id="achCard">
-          <div class="ach-card-name" id="achCardName"></div>
-          <div class="ach-card-praise" id="achCardPraise"></div>
-          <div class="ach-emoji" id="achEmoji">🏆</div>
-          <div class="ach-title" id="achTitle">암석 분류 마스터!</div>
-          <div class="ach-sub" id="achSub">암석 분류 알고리즘 완성</div>
-          <div class="ach-score-row">
-            <div class="ach-score-box">
-              <span class="ach-score-num" id="achScoreNum">0/0</span>
-              <span class="ach-score-lbl">정답</span>
-            </div>
-            <div class="ach-score-box">
-              <span class="ach-score-num" id="achPct" style="color:#60a5fa;">0%</span>
-              <span class="ach-score-lbl">정확도</span>
-            </div>
-          </div>
-          <div class="ach-badges" id="achBadges"></div>
-          <div class="ach-footer-txt">
-            🪨 암석 분류 알고리즘 · 제작: 조승재(과학이조선생)<br>
-            <span id="achDate"></span>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /ach-body -->
-
-    <!-- Actions -->
-    <div class="ach-actions" id="achActions">
-      <!-- rendered by JS based on step -->
-    </div>
-    <div class="ach-saving" id="achSaving" style="display:none;">저장 중...</div>
-
-  </div>
 </div>
 
 <!-- ══ FOOTER ══ -->
@@ -894,10 +1359,66 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
   <div class="cr">© 2026 조승재. 이 자료는 교육 목적 비상업적 사용에 한해 자유롭게 이용 가능합니다.</div>
 </footer>
 
-<!-- ══ TOAST ══ -->
-<div class="toast" id="toast">
-  <span class="ts" id="ts"></span>
-  <div class="tm" id="tm"></div>
+</div><!-- /appWrapper -->
+
+<!-- ══ CELEBRATION OVERLAY ══ -->
+<div id="celebrationOverlay"></div>
+
+<!-- ══ ACHIEVEMENT MODAL ══ -->
+<div class="ach-overlay" id="achOverlay" onclick="closeAchIfBg(event)">
+  <div class="ach-modal">
+    <div class="ach-steps">
+      <div class="ach-step-dot active" id="stepDot1">1</div>
+      <div class="ach-step-line"></div>
+      <div class="ach-step-dot" id="stepDot2">2</div>
+      <div style="margin-left:10px;">
+        <span class="ach-step-label" id="stepLabel">✏️ 카드 꾸미기</span>
+      </div>
+    </div>
+    <div class="ach-body">
+      <div id="achStepEditor" class="ach-editor">
+        <div class="ach-editor-title">🎨 나만의 업적 카드 만들기</div>
+        <div class="ach-editor-sub">이름과 칭찬 문구를 넣어 카드를 완성하세요!</div>
+        <div class="ach-field-group">
+          <label class="ach-field-label" for="inputName">이름 <span>카드에 표시됩니다</span></label>
+          <input class="ach-field-input" id="inputName" type="text" placeholder="예: 김지후" maxlength="20" oninput="livePreview()">
+        </div>
+        <div class="ach-field-group">
+          <label class="ach-field-label" for="inputPraise">칭찬 한마디 <span>자유롭게 써보세요</span></label>
+          <input class="ach-field-input" id="inputPraise" type="text" placeholder="예: 오늘도 열심히 공부한 나 최고! 🌟" maxlength="40" oninput="livePreview()">
+        </div>
+        <div class="ach-field-group">
+          <label class="ach-field-label">대표 이모지 선택</label>
+          <div class="emoji-picker" id="emojiPicker"></div>
+        </div>
+        <div class="ach-field-group">
+          <label class="ach-field-label">카드 테마 색상</label>
+          <div class="theme-picker" id="themePicker"></div>
+        </div>
+        <div style="margin-top:4px;">
+          <label class="ach-field-label">미리보기</label>
+          <div id="miniPreview" style="border-radius:12px;overflow:hidden;border:2px solid #e5e7eb;"></div>
+        </div>
+      </div>
+      <div id="achStepPreview" style="display:none;">
+        <div id="achCard">
+          <div class="ach-card-name" id="achCardName"></div>
+          <div class="ach-card-praise" id="achCardPraise"></div>
+          <div class="ach-emoji" id="achEmoji">🏆</div>
+          <div class="ach-title" id="achTitle">암석 분류 마스터!</div>
+          <div class="ach-sub" id="achSub">암석 분류 알고리즘 완성</div>
+          <div class="ach-score-row">
+            <div class="ach-score-box"><span class="ach-score-num" id="achScoreNum">0/0</span><span class="ach-score-lbl">정답</span></div>
+            <div class="ach-score-box"><span class="ach-score-num" id="achPct" style="color:#60a5fa;">0%</span><span class="ach-score-lbl">정확도</span></div>
+          </div>
+          <div class="ach-badges" id="achBadges"></div>
+          <div class="ach-footer-txt">🪨 암석 분류 알고리즘 · 제작: 조승재(과학이조선생)<br><span id="achDate"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="ach-actions" id="achActions"></div>
+    <div class="ach-saving" id="achSaving" style="display:none;">저장 중...</div>
+  </div>
 </div>
 
 <!-- ══ INFO MODAL ══ -->
@@ -912,8 +1433,9 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
     <div class="modal-section">
       <h3>⭐ 쉬움 vs 🔥 어려움</h3>
       <ul>
-        <li><b>쉬움</b>: 분류기준 카드가 완전한 텍스트로 제공됩니다. 카드 뱅크에서 골라 빈 칸에 배치하세요.</li>
-        <li><b>어려움</b>: 분류기준 카드의 핵심 단어가 <b>___</b> 빈칸으로 가려집니다. 어떤 분류기준인지 스스로 판단하여 올바른 칸에 배치하세요. 카드 순서도 매번 섞입니다.</li>
+        <li><b>쉬움</b>: 분류기준 카드가 완전한 텍스트로 제공됩니다.</li>
+        <li><b>어려움</b>: 분류기준 카드의 핵심 단어가 <b>___</b> 빈칸으로 가려집니다.</li>
+        <li><b>지옥</b>: 카드 없음! 모든 답을 직접 입력하세요.</li>
       </ul>
     </div>
     <div class="modal-section">
@@ -927,23 +1449,69 @@ footer .cr{color:#475569;font-size:.62rem;margin-top:4px;}
     </div>
     <div class="modal-section">
       <h3>⚖️ 저작권 / 이용 안내</h3>
-      <p>
-        제작: 조승재 (과학이조선생)<br>
-        문의: chuseonjae&#64;outlook&#46;kr<br>
-        교육 목적으로 학교 등 공공기관에서 자유롭게 사용 가능합니다.<br>
-        상업적 이용 및 무단 배포는 금지됩니다.
-      </p>
+      <p>제작: 조승재 (과학이조선생)<br>문의: chuseonjae&#64;outlook&#46;kr<br>교육 목적으로 학교 등 공공기관에서 자유롭게 사용 가능합니다.<br>상업적 이용 및 무단 배포는 금지됩니다.</p>
     </div>
     <button onclick="closeModal()" style="width:100%;margin-top:8px;padding:10px;background:#1a1a2e;color:#f1f5f9;border:none;border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">확인</button>
   </div>
 </div>
 
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast">
+  <span class="ts" id="ts"></span>
+  <div class="tm" id="tm"></div>
+</div>
+
 <script>
+/* ══════════════════════════════════════════
+   INTRO
+══════════════════════════════════════════ */
+// Floating rocks
+(function() {
+  const rocks = ['🪨','🌋','💎','🌊','⛏️','🔬','🏔️','🪵'];
+  const container = document.getElementById('floatingRocks');
+  for (let i = 0; i < 16; i++) {
+    const el = document.createElement('div');
+    el.className = 'fr';
+    el.textContent = rocks[Math.floor(Math.random() * rocks.length)];
+    el.style.left = (Math.random() * 100) + '%';
+    el.style.animationDuration = (12 + Math.random() * 20) + 's';
+    el.style.animationDelay = (Math.random() * -25) + 's';
+    el.style.fontSize = (0.8 + Math.random() * 1.6) + 'rem';
+    container.appendChild(el);
+  }
+})();
+
+function startApp() {
+  // Play a soft "whoosh" sound
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch(e) {}
+
+  const intro = document.getElementById('introScreen');
+  intro.classList.add('closing');
+  setTimeout(() => {
+    intro.style.display = 'none';
+    const app = document.getElementById('appWrapper');
+    app.classList.add('visible');
+    renderBank();
+    initDZ();
+    updateProg();
+  }, 680);
+}
+
 /* ══════════════════════════════════════════
    DATA
 ══════════════════════════════════════════ */
-
-/* Answer map: dzId → [accepted keys] */
 const ANS = {
   ig_crit1:['알갱이크기'], ig_vol_cond:['빠른냉각'], ig_plu_cond:['느린냉각'],
   ig_vol_crit2:['광물색'], ig_plu_crit2:['광물색'],
@@ -958,49 +1526,30 @@ const ANS = {
   meta_pyeonam_leaf:['엽리있음'], meta_pyeonmaim_leaf:['엽리있음'],
 };
 
-/* Card definitions
-   isCrit:true  → 분류기준 카드 (쉬움: 전체 텍스트, 어려움: 핵심어 빈칸 처리)
-   htmlHard     → 어려움 모드에서 보여줄 빈칸 버전 (드롭존에 놓이면 htmlFull이 표시됨)
-   htmlFull     → 정답 확인 후 / 드롭존에 표시될 완전한 텍스트 (= html)
-*/
 const ALL_CARDS = [
-  // ── 분류기준 카드
-  {
-    key:'알갱이크기', cls:'dc-crit', isCrit:true,
+  { key:'알갱이크기', cls:'dc-crit', isCrit:true,
     html:'알갱이 크기로 분류<br><small>(냉각 속도)</small>',
-    htmlHard:'<span class="blank">___</span> 크기로 분류<br><small>(냉각 속도)</small>',
-  },
-  {
-    key:'광물색', cls:'dc-crit', isCrit:true,
+    htmlHard:'<span class="blank">___</span> 크기로 분류<br><small>(냉각 속도)</small>' },
+  { key:'광물색', cls:'dc-crit', isCrit:true,
     html:'광물 색깔로 분류<br><small>(어두운색/밝은색)</small>',
-    htmlHard:'광물 <span class="blank">___</span>로 분류<br><small>(어두운색/밝은색)</small>',
-  },
-  {
-    key:'퇴적물종류', cls:'dc-crit', isCrit:true,
+    htmlHard:'광물 <span class="blank">___</span>로 분류<br><small>(어두운색/밝은색)</small>' },
+  { key:'퇴적물종류', cls:'dc-crit', isCrit:true,
     html:'퇴적물의 종류와 크기',
-    htmlHard:'<span class="blank">___</span>의 종류와 크기',
-  },
-  {
-    key:'원래암석', cls:'dc-crit', isCrit:true,
+    htmlHard:'<span class="blank">___</span>의 종류와 크기' },
+  { key:'원래암석', cls:'dc-crit', isCrit:true,
     html:'원래 암석의 종류',
-    htmlHard:'원래 <span class="blank">___</span>의 종류',
-  },
-  {
-    key:'엽리', cls:'dc-crit', isCrit:true,
+    htmlHard:'원래 <span class="blank">___</span>의 종류' },
+  { key:'엽리', cls:'dc-crit', isCrit:true,
     html:'엽리(줄무늬) 관찰 여부',
-    htmlHard:'<span class="blank">___</span>(줄무늬) 관찰 여부',
-  },
-  // ── 화성암 조건
+    htmlHard:'<span class="blank">___</span>(줄무늬) 관찰 여부' },
   {key:'빠른냉각',  cls:'dc-ig', html:'지표 근처, 빠른 냉각<br>→ 알갱이 <b>작음</b>'},
   {key:'느린냉각',  cls:'dc-ig', html:'지하 깊은 곳, 느린 냉각<br>→ 알갱이 <b>큼</b>'},
   {key:'어두운광물', cls:'dc-ig', html:'어두운 색 광물 많음<br>→ <b>어두운색</b>'},
   {key:'밝은광물',  cls:'dc-ig', html:'밝은 색 광물 많음<br>→ <b>밝은색</b>'},
-  // ── 퇴적물
   {key:'자갈모래',  cls:'dc-sed', html:'자갈과 모래가 쌓이고 굳어짐'},
   {key:'모래',      cls:'dc-sed', html:'모래가 쌓이고 굳어짐'},
   {key:'진흙',      cls:'dc-sed', html:'진흙이 쌓이고 굳어짐'},
   {key:'석회질',    cls:'dc-sed', html:'바닷물 속 석회질 물질이나<br>조개껍데기 등 생물 유해가<br>쌓이고 굳어짐'},
-  // ── 변성암
   {key:'사암출신',    cls:'dc-meta', html:'사암 → 열·압력 →'},
   {key:'석회암출신',  cls:'dc-meta', html:'석회암 → 열·압력 →'},
   {key:'이암출신',    cls:'dc-meta', html:'이암 → 열·압력 →'},
@@ -1020,9 +1569,148 @@ const KEY_CLASS = {
   엽리있음:'v-meta', 엽리없음:'v-meta',
 };
 
-let difficulty = 'easy'; // 'easy' | 'hard'
+let difficulty = 'easy';
 const placed = {};
 let dragging = null;
+
+/* ══════════════════════════════════════════
+   ENHANCED SOUND EFFECTS
+══════════════════════════════════════════ */
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    if (type === 'drop') {
+      // Soft click when card is placed
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.12);
+
+    } else if (type === 'correct') {
+      // 🎵 밝고 경쾌한 정답음 — 3음 상승 아르페지오
+      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const t = ctx.currentTime + i * 0.11;
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.25, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+        osc.start(t);
+        osc.stop(t + 0.35);
+      });
+
+    } else if (type === 'perfect') {
+      // 🎆 만점 — 화려한 팡파레
+      const melody = [
+        {freq: 523.25, t: 0.00, dur: 0.15},
+        {freq: 659.25, t: 0.12, dur: 0.15},
+        {freq: 783.99, t: 0.24, dur: 0.15},
+        {freq: 1046.5, t: 0.36, dur: 0.40},
+        {freq: 880.00, t: 0.52, dur: 0.15},
+        {freq: 1046.5, t: 0.64, dur: 0.50},
+      ];
+      melody.forEach(({freq, t, dur}) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = ctx.currentTime + t;
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.22, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        osc.start(start);
+        osc.stop(start + dur);
+      });
+
+    } else if (type === 'allComplete') {
+      // 🏆 전체 완료 — 웅장한 완성 팡파레
+      const fanfare = [
+        {freq: 261.63, t: 0.00, dur: 0.2, vol: 0.18},
+        {freq: 329.63, t: 0.15, dur: 0.2, vol: 0.18},
+        {freq: 392.00, t: 0.30, dur: 0.2, vol: 0.18},
+        {freq: 523.25, t: 0.45, dur: 0.4, vol: 0.22},
+        {freq: 659.25, t: 0.60, dur: 0.2, vol: 0.18},
+        {freq: 783.99, t: 0.75, dur: 0.2, vol: 0.18},
+        {freq: 1046.5, t: 0.90, dur: 0.6, vol: 0.25},
+      ];
+      fanfare.forEach(({freq, t, dur, vol}) => {
+        ['triangle','sine'].forEach((type, wave) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const start = ctx.currentTime + t;
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq * (wave ? 2 : 1), start);
+          gain.gain.setValueAtTime(0, start);
+          gain.gain.linearRampToValueAtTime(vol * (wave ? 0.5 : 1), start + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+          osc.start(start);
+          osc.stop(start + dur);
+        });
+      });
+
+    } else if (type === 'wrong') {
+      // ❌ 오답음 — 하강하는 불협화음
+      const osc = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sawtooth'; osc2.type = 'square';
+      osc.frequency.setValueAtTime(280, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.32);
+      osc2.frequency.setValueAtTime(295, ctx.currentTime);
+      osc2.frequency.exponentialRampToValueAtTime(127, ctx.currentTime + 0.32);
+      gain.gain.setValueAtTime(0.16, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.35);
+      osc2.start(ctx.currentTime); osc2.stop(ctx.currentTime + 0.35);
+    }
+  } catch(e) {}
+}
+
+/* ══════════════════════════════════════════
+   CELEBRATION EFFECTS
+══════════════════════════════════════════ */
+function launchConfetti(count = 60) {
+  const overlay = document.getElementById('celebrationOverlay');
+  overlay.innerHTML = '';
+  const colors = ['#f59e0b','#ef4444','#3b82f6','#10b981','#8b5cf6','#ec4899','#f97316'];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = (Math.random() * 100) + 'vw';
+    el.style.top = '-20px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.width = (6 + Math.random() * 8) + 'px';
+    el.style.height = (6 + Math.random() * 8) + 'px';
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    el.style.animationDelay = (Math.random() * 0.8) + 's';
+    overlay.appendChild(el);
+  }
+  setTimeout(() => { overlay.innerHTML = ''; }, 4000);
+}
+
+function showPerfectBanner(msg = '🎉 완벽합니다!') {
+  const overlay = document.getElementById('celebrationOverlay');
+  const banner = document.createElement('div');
+  banner.className = 'perfect-banner';
+  banner.textContent = msg;
+  overlay.appendChild(banner);
+  setTimeout(() => banner.remove(), 2700);
+}
 
 /* ══════════════════════════════════════════
    BANK RENDER
@@ -1040,7 +1728,6 @@ function renderBank() {
         빈 칸을 클릭하여<br>직접 텍스트를<br>입력하세요.
       </div>
     `;
-    // Convert all dz to text input zones
     document.querySelectorAll('.dz').forEach(zone => {
       if (!zone.querySelector('textarea') && !zone.classList.contains('has-val')) {
         zone.classList.add('hell-input');
@@ -1055,10 +1742,7 @@ function renderBank() {
     return;
   }
 
-  // Restore dz placeholders when leaving hell mode
-  document.querySelectorAll('.dz').forEach(zone => {
-    zone.classList.remove('hell-input');
-  });
+  document.querySelectorAll('.dz').forEach(zone => zone.classList.remove('hell-input'));
 
   if (difficulty === 'easy') {
     bank.innerHTML = `
@@ -1087,7 +1771,6 @@ function renderBank() {
         : 'grp-meta';
       document.getElementById(grp).appendChild(makeCard(c, false));
     });
-
   } else {
     const hardCards = ALL_CARDS.map(c => ({ ...c }));
     for (let i = hardCards.length - 1; i > 0; i--) {
@@ -1104,7 +1787,6 @@ function renderBank() {
     });
   }
 
-  updateCritSlots();
   attachDragListeners();
 }
 
@@ -1113,18 +1795,10 @@ function makeCard(c, useHard) {
   el.className = `dc ${c.cls}`;
   el.setAttribute('draggable', 'true');
   el.dataset.key = c.key;
-  // data-html = full text always (shown inside drop zone after placement)
   el.dataset.html = c.html;
-  // display text: blanked in hard mode for crit cards
   const displayHtml = (useHard && c.isCrit && c.htmlHard) ? c.htmlHard : c.html;
   el.innerHTML = displayHtml;
   return el;
-}
-
-/* Crit slots: in hard mode they accept any card (player must judge);
-   visually they look the same — the answer check enforces correctness */
-function updateCritSlots() {
-  // no visual change needed; crit-slot class just gives a warm tint
 }
 
 /* ══════════════════════════════════════════
@@ -1133,13 +1807,9 @@ function updateCritSlots() {
 function setDiff(d) {
   if (difficulty === d) return;
   difficulty = d;
-
-  // update buttons
   document.getElementById('btn-easy').className = 'diff-btn' + (d === 'easy' ? ' active-easy' : '');
   document.getElementById('btn-hard').className = 'diff-btn' + (d === 'hard' ? ' active-hard' : '');
   document.getElementById('btn-hell').className = 'diff-btn' + (d === 'hell' ? ' active-hell' : '');
-
-  // update chip
   const chip = document.getElementById('diffChip');
   chip.className = d === 'easy' ? 'diff-chip chip-easy'
                  : d === 'hard' ? 'diff-chip chip-hard'
@@ -1147,8 +1817,6 @@ function setDiff(d) {
   chip.textContent = d === 'easy' ? '분류기준 카드 제공됨'
                    : d === 'hard' ? '분류기준 핵심어 빈칸 · 카드 순서 섞임'
                    :                '카드 없음 · 모든 답을 직접 입력';
-
-  // clear placed answers & re-render bank
   resetAll(false);
   renderBank();
 }
@@ -1174,6 +1842,7 @@ function initDZ() {
     zone.addEventListener('drop', e => {
       e.preventDefault(); zone.classList.remove('over');
       if (!dragging) return;
+      playSound('drop');
       setZone(zone.id, dragging.key, dragging.html);
       dragging = null;
     });
@@ -1207,7 +1876,7 @@ document.addEventListener('touchend', e => {
   ghost.remove(); ghost = null;
   const el = document.elementFromPoint(t.clientX, t.clientY);
   const zone = el && el.closest('.dz');
-  if (zone) setZone(zone.id, touchCard.key, touchCard.html);
+  if (zone) { playSound('drop'); setZone(zone.id, touchCard.key, touchCard.html); }
   touchCard = null;
 });
 
@@ -1226,13 +1895,9 @@ function setZone(id, key, html) {
   updateProg();
 }
 
-/* ── HELL MODE: text input into zone ── */
 function setZoneHell(id, text) {
-  if (text.trim() === '') {
-    delete placed[id];
-  } else {
-    placed[id] = { key: '__hell__', html: text.trim(), text: text.trim() };
-  }
+  if (text.trim() === '') { delete placed[id]; }
+  else { placed[id] = { key: '__hell__', html: text.trim(), text: text.trim() }; }
   updateProg();
 }
 window.setZoneHell = setZoneHell;
@@ -1277,7 +1942,6 @@ function updateProg() {
   document.getElementById('progChip').textContent = `${done} / ${keys.length}`;
 }
 
-/* ── Tab-scoped answer keys ── */
 const TAB_KEYS = {
   ig:   ['ig_crit1','ig_vol_cond','ig_plu_cond','ig_vol_crit2','ig_plu_crit2',
           'ig_vol_dark','ig_vol_light','ig_plu_dark','ig_plu_light'],
@@ -1287,16 +1951,15 @@ const TAB_KEYS = {
          'meta_pyeonam_leaf','meta_pyeonmaim_leaf'],
 };
 
-/* Hell mode: acceptable keyword sets per zone */
 const HELL_KEYWORDS = {
   ig_crit1:     ['알갱이','크기','냉각'],
   ig_vol_crit2: ['광물','색','색깔'],
   ig_plu_crit2: ['광물','색','색깔'],
   ig_vol_cond:  ['빠','지표','작','화산'],
   ig_plu_cond:  ['천천','느','깊','심성','큰','큼'],
-  ig_vol_dark:  ['어두','현무','반려','dark','검','흑','흑색'],
+  ig_vol_dark:  ['어두','현무','반려','dark','검','흑'],
   ig_vol_light: ['밝','유문','화강','light','흰','백'],
-  ig_plu_dark:  ['어두','현무','반려','dark','검','흑','흑색'],
+  ig_plu_dark:  ['어두','현무','반려','dark','검','흑'],
   ig_plu_light: ['밝','유문','화강','light','흰','백'],
   sed_crit:     ['퇴적물','종류','크기'],
   sed_yeogam:   ['자갈','모래','역암'],
@@ -1309,20 +1972,19 @@ const HELL_KEYWORDS = {
   meta_sekhoeam:['석회암','대리암'],
   meta_iam:     ['이암','편암'],
   meta_hwagangam:['화강암','편마암','편암'],
-  meta_gyuam_leaf:   ['없','규암'],
-  meta_daeream_leaf: ['없','대리암'],
-  meta_pyeonam_leaf: ['있','관찰','편암'],
+  meta_gyuam_leaf:    ['없','규암'],
+  meta_daeream_leaf:  ['없','대리암'],
+  meta_pyeonam_leaf:  ['있','관찰','편암'],
   meta_pyeonmaim_leaf:['있','관찰','편마암'],
 };
 
 function checkHellAnswer(id, text) {
   const kws = HELL_KEYWORDS[id];
-  if (!kws) return text.trim().length > 0; // unknown zone → accept anything
+  if (!kws) return text.trim().length > 0;
   const t = text.toLowerCase();
   return kws.some(k => t.includes(k));
 }
 
-/* ── Hell mode: model answers shown when correct ── */
 const HELL_MODEL = {
   ig_crit1:     '알갱이 크기로 분류 (냉각 속도)',
   ig_vol_crit2: '광물 색깔로 분류 (어두운색/밝은색)',
@@ -1350,39 +2012,9 @@ const HELL_MODEL = {
   meta_pyeonmaim_leaf:'엽리 관찰됨 (광물 배열 줄무늬)',
 };
 
-/* ── Web Audio 효과음 ── */
-function playSound(type) {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const gain = ctx.createGain();
-    gain.connect(ctx.destination);
-    if (type === 'correct') {
-      // 띠링 — 밝은 두 음 연속
-      [880, 1320].forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        osc.connect(gain);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.13);
-        gain.gain.setValueAtTime(0.28, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-        osc.start(ctx.currentTime + i * 0.13);
-        osc.stop(ctx.currentTime + i * 0.13 + 0.2);
-      });
-    } else {
-      // 삥 — 낮고 짧은 불협화음
-      const osc = ctx.createOscillator();
-      osc.connect(gain);
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(220, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.28);
-      gain.gain.setValueAtTime(0.22, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.3);
-    }
-  } catch(e) { /* 사운드 미지원 환경 무시 */ }
-}
-
+/* ══════════════════════════════════════════
+   CHECK ANSWERS
+══════════════════════════════════════════ */
 let tabScores = { ig: null, sed: null, meta: null };
 
 function checkCurrentTab() {
@@ -1402,7 +2034,6 @@ function checkCurrentTab() {
       if (checkHellAnswer(id, text)) {
         ok++;
         z.classList.add('ok');
-        // 모범답안으로 텍스트 교체
         if (ta && HELL_MODEL[id]) {
           ta.value = HELL_MODEL[id];
           placed[id] = { key: '__hell__', html: HELL_MODEL[id], text: HELL_MODEL[id] };
@@ -1423,10 +2054,19 @@ function checkCurrentTab() {
   const pct = ok / total;
   tabScores[tab] = { ok, total };
 
-  // 효과음 — 80% 이상이면 띠링, 미만이면 삥
-  playSound(pct >= 0.8 ? 'correct' : 'wrong');
+  // 효과음 선택
+  if (pct === 1) {
+    playSound('perfect');
+    launchConfetti(80);
+    const tabNames = { ig:'🔥 화성암', sed:'🌊 퇴적암', meta:'💎 변성암' };
+    showPerfectBanner(`${tabNames[tab]} 완벽! 🎉`);
+  } else if (pct >= 0.7) {
+    playSound('correct');
+  } else {
+    playSound('wrong');
+  }
 
-  // 전체 탭 완료 시 업적 캡처 버튼 표시
+  // 전체 완료 시
   const allDone = ['ig','sed','meta'].every(t => tabScores[t] !== null);
   if (allDone) {
     const totalOk    = Object.values(tabScores).reduce((s,v) => s + v.ok, 0);
@@ -1434,6 +2074,13 @@ function checkCurrentTab() {
     window._lastScore = totalOk;
     window._lastTotal = totalTotal;
     document.getElementById('btnCapture').style.display = '';
+    if (totalOk === totalTotal) {
+      setTimeout(() => {
+        playSound('allComplete');
+        launchConfetti(120);
+        showPerfectBanner('🏆 암석 분류 완전 정복!');
+      }, 800);
+    }
   }
 
   const tabNames = { ig:'화성암', sed:'퇴적암', meta:'변성암' };
@@ -1448,14 +2095,11 @@ function checkCurrentTab() {
   window._tt = setTimeout(() => toast.className = 'toast', 4500);
 }
 
-// Legacy alias
 function checkAnswers() { checkCurrentTab(); }
 
 /* ══════════════════════════════════════════
    ACHIEVEMENT / CAPTURE
 ══════════════════════════════════════════ */
-
-/* Card themes: [gradient, accent color for pct] */
 const ACH_THEMES = [
   { id:'navy',   bg:'linear-gradient(145deg,#1a1a2e,#2d3561)', accent:'#69d88a' },
   { id:'forest', bg:'linear-gradient(145deg,#064e3b,#065f46)', accent:'#6ee7b7' },
@@ -1469,17 +2113,8 @@ const ACH_THEMES = [
 const ACH_EMOJIS = ['🏆','🥇','🥈','🌟','⭐','🔬','🪨','💎','🌋','🧠','🎖️','🌊','✨','💡','🎯'];
 
 let achState = {
-  step: 1,
-  name: '',
-  praise: '',
-  emoji: '🏆',
-  theme: 'navy',
-  autoEmoji: '🏆',
-  autoTitle: '',
-  autoSub: '',
-  badges: [],
-  scoreStr: '',
-  pct: 0,
+  step:1, name:'', praise:'', emoji:'🏆', theme:'navy',
+  autoEmoji:'🏆', autoTitle:'', autoSub:'', badges:[], scoreStr:'', pct:0,
 };
 
 function openAchievement() {
@@ -1487,37 +2122,22 @@ function openAchievement() {
   const total = window._lastTotal ?? Object.keys(ANS).length;
   const pct   = Math.round((ok / total) * 100);
   const diff  = difficulty === 'hell' ? '💀 지옥' : difficulty === 'hard' ? '🔥 어려움' : '⭐ 쉬움';
-
   let emoji, title, sub;
   if (pct === 100)     { emoji='🏆'; title='암석 분류 완전 정복!'; sub='모든 분류 기준을 완벽히 배치했습니다'; }
   else if (pct >= 80)  { emoji='🥇'; title='암석 분류 마스터';    sub='거의 완벽한 분류 알고리즘 완성'; }
   else if (pct >= 60)  { emoji='🥈'; title='암석 분류 도전자';    sub='좋은 성과! 조금만 더 연습하면 완벽해요'; }
   else                 { emoji='🪨'; title='암석 분류 도전 중';   sub='계속 도전하면 반드시 완성됩니다!'; }
-
   const badges = [diff];
   if (pct === 100)                        badges.push('💯 만점');
   if (ok >= 15)                           badges.push('🔬 분류 전문가');
   if (difficulty === 'hard' && pct >= 80) badges.push('🧠 어려움 클리어');
   if (difficulty === 'hell')              badges.push('💀 지옥 클리어');
-
-  // Save to state
-  achState = { ...achState,
-    step: 1, autoEmoji: emoji, autoTitle: title, autoSub: sub,
-    badges, scoreStr: `${ok}/${total}`, pct,
-    emoji: emoji, // default to auto emoji
-  };
-
-  // Render emoji & theme pickers
+  achState = { ...achState, step:1, autoEmoji:emoji, autoTitle:title, autoSub:sub, badges, scoreStr:`${ok}/${total}`, pct, emoji };
   renderEmojiPicker();
   renderThemePicker();
-
-  // Go to step 1
   goStep(1);
-
   document.getElementById('achOverlay').classList.add('open');
   document.getElementById('achSaving').style.display = 'none';
-
-  // Restore inputs if user had typed before
   document.getElementById('inputName').value  = achState.name;
   document.getElementById('inputPraise').value = achState.praise;
   livePreview();
@@ -1526,44 +2146,27 @@ function openAchievement() {
 function renderEmojiPicker() {
   const picker = document.getElementById('emojiPicker');
   picker.innerHTML = ACH_EMOJIS.map(e =>
-    `<div class="emoji-opt${e === achState.emoji ? ' selected' : ''}"
-      onclick="selectEmoji('${e}')">${e}</div>`
+    `<div class="emoji-opt${e === achState.emoji ? ' selected' : ''}" onclick="selectEmoji('${e}')">${e}</div>`
   ).join('');
 }
 
 function renderThemePicker() {
-  const swatches = {
-    navy:'#1a1a2e', forest:'#065f46', royal:'#4c1d95', sunset:'#7c2d12',
-    ocean:'#0c4a6e', rose:'#881337', slate:'#1e293b', gold:'#78350f',
-  };
+  const swatches = { navy:'#1a1a2e', forest:'#065f46', royal:'#4c1d95', sunset:'#7c2d12', ocean:'#0c4a6e', rose:'#881337', slate:'#1e293b', gold:'#78350f' };
   const picker = document.getElementById('themePicker');
   picker.innerHTML = ACH_THEMES.map(t =>
-    `<div class="theme-opt${t.id === achState.theme ? ' selected' : ''}"
-      style="background:${swatches[t.id]};"
-      onclick="selectTheme('${t.id}')" title="${t.id}"></div>`
+    `<div class="theme-opt${t.id === achState.theme ? ' selected' : ''}" style="background:${swatches[t.id]};" onclick="selectTheme('${t.id}')" title="${t.id}"></div>`
   ).join('');
 }
 
-function selectEmoji(e) {
-  achState.emoji = e;
-  renderEmojiPicker();
-  livePreview();
-}
+function selectEmoji(e) { achState.emoji = e; renderEmojiPicker(); livePreview(); }
+function selectTheme(id) { achState.theme = id; renderThemePicker(); livePreview(); }
 
-function selectTheme(id) {
-  achState.theme = id;
-  renderThemePicker();
-  livePreview();
-}
-
-/* Build the inner card HTML (used in mini-preview and final card) */
 function buildCardHTML(opts = {}) {
   const theme  = ACH_THEMES.find(t => t.id === achState.theme) || ACH_THEMES[0];
   const name   = (achState.name || '').trim();
   const praise = (achState.praise || '').trim();
   const bg     = opts.bg || theme.bg;
   const accent = theme.accent;
-
   return `<div style="padding:24px 22px 18px;background:${bg};color:#f1f5f9;text-align:center;font-family:'Noto Sans KR',sans-serif;">
     ${name   ? `<div style="font-size:.9rem;font-weight:900;letter-spacing:-.3px;margin-bottom:2px;color:#f1f5f9;">${escHtml(name)}</div>` : ''}
     ${praise ? `<div style="font-size:.7rem;color:rgba(255,255,255,.72);margin-bottom:12px;font-style:italic;line-height:1.4;">${escHtml(praise)}</div>` : '<div style="margin-bottom:12px;"></div>'}
@@ -1603,23 +2206,12 @@ function livePreview() {
 
 function goStep(n) {
   achState.step = n;
-
-  // dots
   document.getElementById('stepDot1').className = 'ach-step-dot' + (n >= 1 ? (n > 1 ? ' done' : ' active') : '');
   document.getElementById('stepDot2').className = 'ach-step-dot' + (n === 2 ? ' active' : '');
   document.getElementById('stepLabel').textContent = n === 1 ? '✏️ 카드 꾸미기' : '👁 미리보기 & 저장';
-
-  // panels
   document.getElementById('achStepEditor').style.display  = n === 1 ? 'block' : 'none';
   document.getElementById('achStepPreview').style.display = n === 2 ? 'block' : 'none';
-
-  if (n === 2) {
-    // populate final card
-    const card = document.getElementById('achCard');
-    card.innerHTML = buildCardHTML();
-  }
-
-  // actions
+  if (n === 2) { document.getElementById('achCard').innerHTML = buildCardHTML(); }
   const actions = document.getElementById('achActions');
   if (n === 1) {
     actions.innerHTML = `
@@ -1633,13 +2225,8 @@ function goStep(n) {
   }
 }
 
-function closeAchievement() {
-  document.getElementById('achOverlay').classList.remove('open');
-}
-
-function closeAchIfBg(e) {
-  if (e.target === document.getElementById('achOverlay')) closeAchievement();
-}
+function closeAchievement() { document.getElementById('achOverlay').classList.remove('open'); }
+function closeAchIfBg(e) { if (e.target === document.getElementById('achOverlay')) closeAchievement(); }
 
 async function saveAchievement() {
   const saving = document.getElementById('achSaving');
@@ -1647,12 +2234,7 @@ async function saveAchievement() {
   saving.textContent = '이미지 생성 중...';
   try {
     const card = document.getElementById('achCard');
-    const canvas = await html2canvas(card, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: null,
-      logging: false,
-    });
+    const canvas = await html2canvas(card, { scale:3, useCORS:true, backgroundColor:null, logging:false });
     saving.textContent = '저장 중...';
     const link = document.createElement('a');
     const nameSlug = (achState.name || '업적').replace(/\s+/g,'_');
@@ -1663,7 +2245,6 @@ async function saveAchievement() {
     setTimeout(() => { saving.style.display = 'none'; }, 2200);
   } catch(err) {
     saving.textContent = '❌ 저장 실패. 스크린샷을 이용해주세요.';
-    console.error(err);
   }
 }
 
@@ -1697,11 +2278,9 @@ function switchTab(t) {
     btn.className = 'tab-btn';
     if (x === t) btn.classList.add('on-'+x);
   });
-  // update check button label
   const names = { ig:'🔥 화성암 확인', sed:'🌊 퇴적암 확인', meta:'💎 변성암 확인' };
   const checkBtn = document.getElementById('btnCheckTab');
   if (checkBtn) checkBtn.textContent = '✅ ' + names[t].slice(2);
-  // update prog chip to show tab-specific progress
   updateProg();
 }
 
@@ -1713,7 +2292,7 @@ function closeModal() { document.getElementById('modalOverlay').classList.remove
 function closeModalIfBg(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
 
 /* ══════════════════════════════════════════
-   EXPOSE TO GLOBAL SCOPE (fixes onclick= errors)
+   EXPOSE GLOBALS
 ══════════════════════════════════════════ */
 window.setDiff          = setDiff;
 window.switchTab        = switchTab;
@@ -1733,14 +2312,13 @@ window.goStep           = goStep;
 window.selectEmoji      = selectEmoji;
 window.selectTheme      = selectTheme;
 window.livePreview      = livePreview;
+window.startApp         = startApp;
 
 /* ══════════════════════════════════════════
-   INIT
+   INIT (app not started yet — bank & DZ init
+   are deferred to startApp())
 ══════════════════════════════════════════ */
 window._currentTab = 'ig';
-renderBank();
-initDZ();
-updateProg();
 </script>
 </body>
 </html>
